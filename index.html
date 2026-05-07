@@ -835,6 +835,50 @@
   .btn-gps.active { background: rgba(64,192,96,0.12); border-color: var(--success); color: var(--success); }
   .btn-gps.locating { border-color: var(--accent); color: var(--accent); animation: pulse 1s infinite; }
 
+  /* No login badge on card header */
+  .no-login-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .no-login-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text3);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+
+  .no-login-add-btn {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--info);
+    background: rgba(68,144,224,0.08);
+    border: 1px dashed rgba(68,144,224,0.3);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    line-height: 1.2;
+  }
+
+  .no-login-add-btn:hover {
+    background: rgba(68,144,224,0.16);
+    border-color: var(--info);
+  }
+
   .dist-badge {
     font-family: var(--mono);
     font-size: 10px;
@@ -1969,6 +2013,11 @@ function renderSites() {
           ${s.address ? `<div class="site-addr">${esc(s.address)}</div>` : ''}
           ${(s._dist !== undefined && s._dist !== Infinity) ? `<div class="dist-badge">${formatDist(s._dist)}</div>` : ''}
         </div>
+        ${!s.signInUrl ? `
+          <div class="no-login-badge" onclick="event.stopPropagation()">
+            <span class="no-login-tag">No Login</span>
+            ${hasPermission('editSites') ? `<button class="no-login-add-btn" onclick="openEditPageQR(${s.id})">+ Add URL</button>` : ''}
+          </div>` : ''}
       </div>
       <div class="site-detail">
         ${s.address ? `<div style="margin-bottom:12px"><div class="detail-label">Address</div><div class="detail-value" style="margin-top:4px;font-size:13px">${esc(s.address)}</div></div>` : ''}
