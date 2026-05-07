@@ -874,6 +874,26 @@
   }
   .btn-signin:hover { background: #215fa8; border-color: #3a7acc; }
 
+  .btn-add-qr {
+    background: rgba(68,144,224,0.08);
+    color: var(--info);
+    border: 1px dashed rgba(68,144,224,0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex: 1;
+    justify-content: center;
+    min-width: 110px;
+  }
+  .btn-add-qr:hover { background: rgba(68,144,224,0.15); border-color: var(--info); }
+
   .btn-nav {
     background: #1a5c38;
     color: #a0f0c0;
@@ -1474,12 +1494,12 @@
 //  FIREBASE CONFIG — update with your credentials
 // ─────────────────────────────────────────────
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "complytrack-6ac7e.firebaseapp.com",
-  projectId: "complytrack-6ac7e",
-  storageBucket: "complytrack-6ac7e.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCiICSH279ecX_k3ma-Kw3Xszt8wgUzgmM",
+  authDomain: "ostrichlogin.firebaseapp.com",
+  projectId: "ostrichlogin",
+  storageBucket: "ostrichlogin.firebasestorage.app",
+  messagingSenderId: "1036713713378",
+  appId: "1:1036713713378:web:0138480304436eb67948bb"
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
@@ -1912,12 +1932,18 @@ function renderSites() {
   }
 
   grid.innerHTML = list.map((s, i) => {
-    const signInBtn = (s.signInUrl && hasPermission('signIn'))
-      ? `<a class="btn btn-signin" href="${s.signInUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+    let signInBtn = '';
+    if (s.signInUrl && hasPermission('signIn')) {
+      signInBtn = `<a class="btn btn-signin" href="${s.signInUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
            Sign In / Out
-         </a>`
-      : '';
+         </a>`;
+    } else if (!s.signInUrl && hasPermission('editSites')) {
+      signInBtn = `<button class="btn btn-add-qr" onclick="event.stopPropagation(); openEditPageQR(${s.id})">
+           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+           Add Sign-In QR
+         </button>`;
+    }
     const navBtn = (s.address && hasPermission('navigate'))
       ? `<a class="btn btn-nav" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address || s.name)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
@@ -1988,6 +2014,12 @@ function copyCode(btn, code) {
 // ─────────────────────────────────────────────
 //  EDIT PAGE
 // ─────────────────────────────────────────────
+function openEditPageQR(id) {
+  openEditPage(id);
+  // Small delay to let the edit page render, then open QR scanner
+  setTimeout(() => openQrScanner('editSiteSignInUrl'), 300);
+}
+
 function openEditPage(id) {
   const s = _sites.find(x => x.id === id);
   if (!s) return;
@@ -2357,7 +2389,7 @@ function doRestore(input) {
 //  FIREBASE
 // ─────────────────────────────────────────────
 function initFirebase() {
-  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+  if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
     setSyncStatus('offline', 'Firebase not configured — running locally only');
     return;
   }
