@@ -454,6 +454,21 @@
     flex: 1;
   }
 
+  /* Inline add code button */
+  .btn-inline-add-code {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(232,160,32,0.08);
+    border: 1px solid rgba(232,160,32,0.25);
+    border-radius: 4px;
+    padding: 3px 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-inline-add-code:hover { background: rgba(232,160,32,0.16); border-color: var(--accent); }
+
   /* Edit page: access code rows */
   .ac-edit-row {
     display: flex;
@@ -1264,7 +1279,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.0.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.1.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1387,7 +1402,7 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.0.0 — Fairy Meadow Plumbing</span></div>
+            <div class="settings-desc"><span class="app-version-label">v2.1.0 — Fairy Meadow Plumbing</span></div>
           </div>
         </div>
         <div class="settings-row">
@@ -1634,7 +1649,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -2114,9 +2129,12 @@ function renderSites() {
       </div>
       <div class="site-detail">
         ${s.address ? `<div style="margin-bottom:12px"><div class="detail-label">Address</div><div class="detail-value" style="margin-top:4px;font-size:13px">${esc(s.address)}</div></div>` : ''}
-        ${(s.accessCodes && s.accessCodes.length > 0) ? `
-          <div style="margin-bottom:12px">
-            <div class="detail-label" style="margin-bottom:6px">Access Codes</div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="detail-label">Access Codes</div>
+            ${hasPermission('accessCodes') ? `<button class="btn-inline-add-code" onclick="event.stopPropagation(); showInlineAddCode(${s.id})">+ Add Code</button>` : ''}
+          </div>
+          ${(s.accessCodes && s.accessCodes.length > 0) ? `
             <div class="access-codes-list">
               ${s.accessCodes.map(ac => `
                 <div class="access-code-row">
@@ -2124,8 +2142,16 @@ function renderSites() {
                   <span class="access-code-val">${esc(ac.code)}</span>
                   <button class="copy-btn" title="Copy" onclick="event.stopPropagation(); copyCode(this, ${JSON.stringify(ac.code)})">⎘</button>
                 </div>`).join('')}
+            </div>` : `<div style="font-size:12px;color:var(--text3);font-style:italic">No codes added yet</div>`}
+          <div class="inline-add-code-form" id="inline-add-${s.id}" style="display:none" onclick="event.stopPropagation()">
+            <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+              <input type="text" class="inline-code-loc" placeholder="Location (optional)" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:7px 10px;outline:none">
+              <input type="text" class="inline-code-val" placeholder="Code *" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none">
+              <button onclick="event.stopPropagation(); saveInlineCode(${s.id})" style="background:var(--accent);color:#0f1117;border:none;border-radius:var(--radius);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+              <button onclick="event.stopPropagation(); hideInlineAddCode(${s.id})" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1">×</button>
             </div>
-          </div>` : ''}
+          </div>
+        </div>
         ${s.notes ? `<div class="detail-label">Notes</div><div class="notes-box" style="margin-bottom:12px">${esc(s.notes)}</div>` : ''}
         <div class="site-action-row">${signInBtn}${navBtn}${editBtn}${delBtn}</div>
       </div>
@@ -2768,6 +2794,43 @@ function closeQrScanner() {
   }
   const video = document.getElementById('qrVideo');
   video.srcObject = null;
+}
+
+// ─────────────────────────────────────────────
+//  INLINE ADD CODE
+// ─────────────────────────────────────────────
+function showInlineAddCode(siteId) {
+  const form = document.getElementById('inline-add-' + siteId);
+  if (!form) return;
+  form.style.display = 'block';
+  form.querySelector('.inline-code-loc').value = '';
+  form.querySelector('.inline-code-val').value = '';
+  form.querySelector('.inline-code-val').focus();
+}
+
+function hideInlineAddCode(siteId) {
+  const form = document.getElementById('inline-add-' + siteId);
+  if (form) form.style.display = 'none';
+}
+
+function saveInlineCode(siteId) {
+  const form = document.getElementById('inline-add-' + siteId);
+  if (!form) return;
+  const location = form.querySelector('.inline-code-loc').value.trim();
+  const code     = form.querySelector('.inline-code-val').value.trim();
+  if (!code) { form.querySelector('.inline-code-val').focus(); return; }
+
+  const site = _sites.find(s => s.id === siteId);
+  if (!site) return;
+  if (!site.accessCodes) site.accessCodes = [];
+  site.accessCodes.push({ location, code });
+  site.updatedAt = Date.now();
+
+  saveLocal();
+  scheduleSyncToFirebase();
+  _expandedId = siteId; // keep card open
+  renderSites();
+  toast('Code added.', 'success');
 }
 
 // ─────────────────────────────────────────────
