@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OstrichLogin">
+<title>OstrichLogin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181b24;
+    --surface2: #1e2230;
+    --border: #2a2f3d;
+    --border2: #353b4d;
+    --accent: #e8a020;
+    --accent2: #f0b840;
+    --text: #d4d8e2;
+    --text2: #8890a4;
+    --text3: #555d70;
+    --danger: #e05050;
+    --success: #40c060;
+    --info: #4090e0;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN ─────────────────────────────── */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px),
+      var(--bg);
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .login-logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .login-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .login-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 32px;
+    font-family: var(--mono);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .form-group select option { background: var(--surface); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    border: none;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f1117;
+    width: 100%;
+    justify-content: center;
+    font-size: 14px;
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { background: var(--accent2); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #c04040; }
+
+  .btn-success { background: var(--success); color: #0f1117; }
+  .btn-success:hover { background: #30a050; }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  .error-msg {
+    background: rgba(224,80,80,0.12);
+    border: 1px solid rgba(224,80,80,0.3);
+    color: #e87070;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── HEADER ─────────────────────────────── */
+  #appHeader {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .header-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .header-spacer { flex: 1; }
+
+  .header-user {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sync-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  .sync-dot.syncing { background: var(--accent); animation: pulse 1s infinite; }
+  .sync-dot.synced { background: var(--success); }
+  .sync-dot.error { background: var(--danger); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── NAV TABS ─────────────────────────────── */
+  #navTabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .nav-tab {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .nav-tab:hover { color: var(--text2); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── MAIN ─────────────────────────────── */
+  #appMain {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+  }
+
+  /* ── SEARCH BAR ─────────────────────────── */
+  .search-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 9px 12px 9px 34px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+
+  /* ── SITE CARDS ─────────────────────────── */
+  .site-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .site-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .site-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+
+  .site-card:hover {
+    border-color: var(--border2);
+    background: var(--surface2);
+  }
+
+  .site-card.expanded {
+    border-color: var(--accent);
+  }
+
+  .site-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .site-index {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 28px;
+    padding-top: 2px;
+  }
+
+  .site-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .site-addr {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 4px;
+    margin-left: 40px;
+  }
+
+  .site-detail {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .site-card.expanded .site-detail { display: block; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 500px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .detail-field { }
+
+  .detail-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+
+  .detail-value {
+    font-size: 13px;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .detail-value a {
+    color: var(--info);
+    text-decoration: none;
+  }
+
+  .detail-value a:hover { text-decoration: underline; }
+
+  .code-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+  }
+
+  .copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    padding: 0;
+    font-size: 13px;
+    transition: color 0.15s;
+    line-height: 1;
+  }
+
+  .copy-btn:hover { color: var(--accent); }
+  .copy-btn.copied { color: var(--success); }
+
+  .notes-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  .site-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+
+  /* ── MODAL ─────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 520px;
+    margin: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px;
+    transition: color 0.15s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 20px 24px; }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ── USERS TAB ─────────────────────────── */
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .users-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .users-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .users-table tr:last-child td { border-bottom: none; }
+
+  .role-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .role-badge.admin { background: rgba(232,160,32,0.15); color: var(--accent); }
+  .role-badge.user { background: rgba(68,144,224,0.12); color: var(--info); }
+
+  /* ── SETTINGS TAB ─────────────────────────── */
+  .settings-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .settings-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .settings-row {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+
+  .settings-row:last-child { border-bottom: none; }
+
+  .settings-label { font-size: 13px; font-weight: 500; }
+  .settings-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* ── TOAST ─────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 999;
+    transition: transform 0.2s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    white-space: nowrap;
+    max-width: calc(100vw - 32px);
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { border-color: var(--success); color: var(--success); }
+  #toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* ── MISC ─────────────────────────────── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .text-muted { color: var(--text3); font-size: 12px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  input[type="file"] { display: none; }
+
+  .btn-gps {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .btn-gps:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-gps.active { background: rgba(64,192,96,0.12); border-color: var(--success); color: var(--success); }
+  .btn-gps.locating { border-color: var(--accent); color: var(--accent); animation: pulse 1s infinite; }
+
+  .dist-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--success);
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── SITE ACTION ROW ──────────────────────── */
+  .site-action-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-signin {
+    background: #1a4d8a;
+    color: #d0e8ff;
+    border: 1px solid #2a6ab8;
+    flex: 1;
+    justify-content: center;
+    min-width: 110px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-signin:hover { background: #215fa8; border-color: #3a7acc; }
+
+  .btn-nav {
+    background: #1a5c38;
+    color: #a0f0c0;
+    border: 1px solid #237a4a;
+    flex: 1;
+    justify-content: center;
+    min-width: 100px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-nav:hover { background: #1f7045; }
+
+  .btn-edit-site {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-edit-site:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-delete-site {
+    background: rgba(224,80,80,0.08);
+    color: #e07070;
+    border: 1px solid rgba(224,80,80,0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-delete-site:hover { background: rgba(224,80,80,0.18); border-color: rgba(224,80,80,0.4); }
+
+  /* ── EDIT PAGE ──────────────────────────────── */
+  #editPage {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  #editPage.open { display: flex; }
+
+  .edit-page-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .edit-back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .edit-page-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .edit-page-body {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  .edit-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 24px 0 12px;
+  }
+
+  .edit-section-label:first-child { margin-top: 0; }
+
+  /* ── URL INPUT WITH SCAN BUTTON ─────────── */
+  .url-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .url-input-wrap input {
+    padding-right: 44px;
+  }
+
+  .qr-scan-btn {
+    position: absolute;
+    right: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text2);
+    cursor: pointer;
+    padding: 5px 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .qr-scan-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .qr-scan-btn:active { background: var(--border2); }
+
+  /* QR Scanner overlay */
+  #qrOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+  }
+
+  #qrOverlay.open { display: flex; }
+
+  #qrOverlay video {
+    width: 100%;
+    flex: 1;
+    object-fit: cover;
+  }
+
+  .qr-header {
+    background: rgba(0,0,0,0.85);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .qr-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+  }
+
+  .qr-cancel {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  .qr-viewfinder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    width: 220px;
+    height: 220px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 12px;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
+    pointer-events: none;
+  }
+
+  .qr-viewfinder::before, .qr-viewfinder::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+
+  .qr-viewfinder::before {
+    top: -2px; left: -2px;
+    border-width: 3px 0 0 3px;
+    border-radius: 10px 0 0 0;
+  }
+
+  .qr-viewfinder::after {
+    bottom: -2px; right: -2px;
+    border-width: 0 3px 3px 0;
+    border-radius: 0 0 10px 0;
+  }
+
+  .qr-hint {
+    background: rgba(0,0,0,0.75);
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    text-align: center;
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Fairy Meadow Plumbing</div>
+    <div class="login-title">OstrichLogin</div>
+    <div class="login-sub">v1.0.0 — Secure access required</div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" autocomplete="username" autocapitalize="none">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password">
+    </div>
+
+    <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ── APP SHELL ──────────────────────────────── -->
+<div id="appShell" style="display:none">
+  <header id="appHeader">
+    <div class="header-logo">OL</div>
+    <div class="header-title">OstrichLogin</div>
+    <div class="header-spacer"></div>
+    <div class="header-user">
+      <span id="headerUserName"></span>
+      <span class="sync-dot" id="syncDot" title="Sync status"></span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+    </div>
+  </header>
+
+  <nav id="navTabs">
+    <div class="nav-tab active" data-tab="sites" onclick="switchTab('sites')">Sites</div>
+    <div class="nav-tab" data-tab="users" onclick="switchTab('users')" id="usersTabBtn">Users</div>
+    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')">Settings</div>
+  </nav>
+
+  <main id="appMain">
+
+    <!-- ── SITES TAB ── -->
+    <div id="tab-sites">
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="searchInput" type="text" placeholder="Search sites, addresses, notes…" oninput="renderSites()">
+        </div>
+        <button class="btn btn-gps" id="gpsSortBtn" onclick="toggleGpsSort()" title="Sort by distance">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" opacity="0"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:-15px"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="btn btn-primary" onclick="openSiteModal()" id="addSiteBtn" style="white-space:nowrap">+ Add Site</button>
+      </div>
+      <div class="site-count" id="siteCount"></div>
+      <div class="site-grid" id="siteGrid"></div>
+    </div>
+
+    <!-- ── USERS TAB ── -->
+    <div id="tab-users" style="display:none">
+      <div class="section-header">
+        <span class="section-title">Authorised Users</span>
+        <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+      </div>
+      <div class="settings-section">
+        <table class="users-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS TAB ── -->
+    <div id="tab-settings" style="display:none">
+      <div class="settings-section">
+        <div class="settings-section-title">Data</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Backup</div>
+            <div class="settings-desc">Export all sites and users as JSON</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="doBackup()">↓ Export</button>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Restore</div>
+            <div class="settings-desc">Import from a JSON backup file</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('restoreFile').click()">↑ Import</button>
+        </div>
+        <input type="file" id="restoreFile" accept=".json" onchange="doRestore(this)">
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Firebase Sync</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Sync status</div>
+            <div class="settings-desc" id="syncStatusText">Not connected</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="syncNow()">⟳ Sync now</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Change Password</div>
+            <div class="settings-desc">Update your login password</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openChangePasswordModal()">Change</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">About</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">OstrichLogin</div>
+            <div class="settings-desc">v1.0.0 — Fairy Meadow Plumbing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── SITE MODAL ──────────────────────────────── -->
+<div class="modal-overlay" id="siteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="siteModalTitle">Add Site</div>
+      <button class="modal-close" onclick="closeSiteModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="siteId">
+      <div class="form-group">
+        <label>Site Name *</label>
+        <input type="text" id="siteName" placeholder="e.g. William Beach Gardens">
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="siteAddress" placeholder="Street, Suburb NSW XXXX">
+      </div>
+      <div class="form-group">
+        <label>Sign-In URL</label>
+        <div class="url-input-wrap">
+          <input type="url" id="siteSignInUrl" placeholder="https://…">
+          <button type="button" class="qr-scan-btn" onclick="openQrScanner('siteSignInUrl')" title="Scan QR code">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Door / Access Code</label>
+        <input type="text" id="siteDoorCode" placeholder="e.g. 1234# or MASTER:5678">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="siteNotes" placeholder="Parking, access instructions, contacts…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSiteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSite()">Save Site</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── USER MODAL ──────────────────────────────── -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="userModalTitle">Add User</div>
+      <button class="modal-close" onclick="closeUserModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="userId">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="userName">
+      </div>
+      <div class="form-group">
+        <label>Username *</label>
+        <input type="text" id="userUsername" autocapitalize="none">
+      </div>
+      <div class="form-group">
+        <label id="passLabel">Password *</label>
+        <input type="password" id="userPassword" autocomplete="new-password">
+      </div>
+      <div class="form-group" id="passConfirmGroup">
+        <label>Confirm Password *</label>
+        <input type="password" id="userPasswordConfirm" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="userRole">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="error-msg" id="userModalError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CHANGE PASSWORD MODAL ─────────────────── -->
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="document.getElementById('changePwModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" id="cpCurrent">
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" id="cpNew">
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" id="cpConfirm">
+      </div>
+      <div class="error-msg" id="cpError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('changePwModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="doChangePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT PAGE ──────────────────────────────── -->
+<div id="editPage">
+  <div class="edit-page-header">
+    <button class="edit-back-btn" onclick="closeEditPage()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Sites
+    </button>
+    <div class="edit-page-title" id="editPageTitle">Edit Site</div>
+    <button class="btn btn-primary btn-sm" onclick="saveEditPage()">Save</button>
+  </div>
+  <div class="edit-page-body">
+    <input type="hidden" id="editSiteId">
+
+    <div class="edit-section-label">Site Details</div>
+    <div class="form-group">
+      <label>Site Name *</label>
+      <input type="text" id="editSiteName" placeholder="e.g. William Beach Gardens">
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <input type="text" id="editSiteAddress" placeholder="Street, Suburb NSW XXXX">
+    </div>
+
+    <div class="edit-section-label">Access</div>
+    <div class="form-group">
+      <label>Sign-In URL</label>
+      <div class="url-input-wrap">
+        <input type="url" id="editSiteSignInUrl" placeholder="https://…">
+        <button type="button" class="qr-scan-btn" onclick="openQrScanner('editSiteSignInUrl')" title="Scan QR code">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Door / Access Code</label>
+      <input type="text" id="editSiteDoorCode" placeholder="e.g. Front door: 1234, Lift: 5678">
+    </div>
+
+    <div class="edit-section-label">Notes</div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="editSiteNotes" placeholder="Parking, contacts, access instructions…" style="min-height:120px"></textarea>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEditPage()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeEditPage()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── QR SCANNER ──────────────────────────────── -->
+<div id="qrOverlay">
+  <div class="qr-header">
+    <div class="qr-title">Scan Sign-In QR Code</div>
+    <button class="qr-cancel" onclick="closeQrScanner()">Cancel</button>
+  </div>
+  <div style="position:relative;flex:1;overflow:hidden">
+    <video id="qrVideo" autoplay playsinline muted></video>
+    <div class="qr-viewfinder"></div>
+  </div>
+  <div class="qr-hint">Point camera at the QR code</div>
+</div>
+
+<!-- ── TOAST ──────────────────────────────────── -->
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  FIREBASE CONFIG — update with your credentials
+// ─────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "complytrack-6ac7e.firebaseapp.com",
+  projectId: "complytrack-6ac7e",
+  storageBucket: "complytrack-6ac7e.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const FIRESTORE_DOC = 'ostrich_sites/main';
+const APP_VERSION = '1.0.0';
+
+// ─────────────────────────────────────────────
+//  STORAGE KEYS
+// ─────────────────────────────────────────────
+const K_SITES    = 'ostrich_sites_v1';
+const K_USERS    = 'ostrich_users_v1';
+const K_SESSION  = 'ostrich_session_v1';
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let _sites   = [];
+let _users   = [];
+let _session = null;
+let _db      = null;
+let _syncTs  = 0;
+let _syncTimer = null;
+let _expandedId = null;
+
+// ─────────────────────────────────────────────
+//  SHA-256 HASH
+// ─────────────────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ─────────────────────────────────────────────
+//  LOAD / SAVE LOCAL
+// ─────────────────────────────────────────────
+function loadLocal() {
+  try { _sites = JSON.parse(localStorage.getItem(K_SITES) || '[]'); } catch { _sites = []; }
+  try { _users = JSON.parse(localStorage.getItem(K_USERS) || '[]'); } catch { _users = []; }
+  try { _session = JSON.parse(localStorage.getItem(K_SESSION) || 'null'); } catch { _session = null; }
+}
+
+function saveLocal() {
+  localStorage.setItem(K_SITES, JSON.stringify(_sites));
+  localStorage.setItem(K_USERS, JSON.stringify(_users));
+}
+
+// ─────────────────────────────────────────────
+//  SEED DEFAULT ADMIN
+// ─────────────────────────────────────────────
+async function seedDefaultAdmin() {
+  if (_users.length === 0) {
+    const hash = await sha256('admin123');
+    _users = [{
+      id: Date.now(),
+      username: 'neil',
+      password: hash,
+      name: 'Neil Auchterlonie',
+      role: 'admin'
+    }];
+    saveLocal();
+  }
+  if (_sites.length === 0) {
+    seedSites();
+  } else {
+    migrateAddresses();
+  }
+}
+
+// One-time migration: patch addresses into existing records that have none
+function migrateAddresses() {
+  const addressMap = {
+    'Berala':                  '102 Woodburn Rd, Berala NSW 2141',
+    'Braeside Close':          '155-161 Gipps Rd, Keiraville NSW 2500',
+    'Camellia Lodge (Woonona)':'Popes Rd, Woonona NSW 2517',
+    'Central Kitchen':         'Kanahooka NSW 2530',
+    'Crown Gardens':           'Batemans Bay NSW 2536',
+    'Culburra':                'Culburra Beach NSW 2540',
+    'Dalmeny':                 'Dalmeny NSW 2546',
+    'Diment Towers':           '39-45 Staff St, Wollongong NSW 2500',
+    'Five Islands Court':      '25 Quarry St, Port Kembla NSW 2505',
+    'Greenwell Gardens':       '4 Brereton St, Nowra NSW 2541',
+    'Henry Brooks':            'Kanahooka NSW 2530',
+    'Howard Court':            '1 Ross St, Wollongong NSW 2500',
+    'Kangara':                 '2 Joy Cummings Pl, Belconnen ACT 2617',
+    'MacArthur':               '1 Hyde Parade, Campbelltown NSW 2560',
+    'Marco Polo Unanderra':    'Unanderra NSW 2526',
+    'Marco Polo Woonona':      '11 Watergum Way, Woonona NSW 2517',
+    'Mario Polo Woonona':      '11 Watergum Way, Woonona NSW 2517',
+    'McCauley Lodge':          'Nowra NSW 2541',
+    'Milton':                  'Milton NSW 2538',
+    'Moruya':                  '35-39 River St, Moruya NSW 2537',
+    'Parkside':                '1 Ross St, Wollongong NSW 2500',
+    'Peakhurst EKC':           '24 Turpentine Ave, Peakhurst NSW 2210',
+    'Sans Souci':              'Sans Souci NSW 2219',
+    'St George Basin':         '87 Loralyn Ave, St Georges Basin NSW 2540',
+    'Tarrawanna Care Centre':  '74-80 Caldwell Ave, Tarrawanna NSW 2518',
+    'Tarrawanna Depot':        'Tarrawanna NSW 2518',
+    'Tarrawanna Village':      'Tarrawanna NSW 2518',
+    'The Clyde':               'Batemans Bay NSW 2536',
+    'Thomas Holt Kirrawee':    'Kirrawee NSW 2232',
+    'Towradgi':                'Towradgi NSW 2518',
+    'UC Unanderra N/H':        'Unanderra NSW 2526',
+    'William Beach Gardens':   'Kanahooka NSW 2530',
+    'Woolwich':                'Woolwich NSW 2110',
+    'Woonona':                 'Popes Rd, Woonona NSW 2517',
+  };
+  let changed = false;
+  _sites.forEach(s => {
+    if (!s.address && addressMap[s.name]) {
+      s.address = addressMap[s.name];
+      changed = true;
+    }
+  });
+  if (changed) {
+    saveLocal();
+    scheduleSyncToFirebase();
+  }
+}
+
+function seedSites() {
+  const now = Date.now();
+  _sites = [
+    { id: now+1,  name: 'Berala', address: '102 Woodburn Rd, Berala NSW 2141',               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F5DFC116B48CF597CB34ACE0C3FA5719167A41430A46EB811F450AF4667B6CAF368EB7BF4E7202FEBB06344392F8576CB387D6CD46271F132937C285AD641995', doorCode: 'Lift: 1357', notes: '', updatedAt: now },
+    { id: now+2,  name: 'Braeside Close', address: '155-161 Gipps Rd, Keiraville NSW 2500',           signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C2047A3F9749D56C7425F660685ADBDFCF84CE1CA00F87E6B979B216AC6A6AEB5076726408C74BA4F3E47F2C282BF3E3B17F791E4F37FFC98D44ECA0CE73F022&g=18556', doorCode: 'Community room: 1993', notes: 'WiFi: brae2500', updatedAt: now },
+    { id: now+3,  name: 'Camellia Lodge (Woonona)', address: 'Popes Rd, Woonona NSW 2517',                     signInUrl: '', doorCode: '2468 arrow (old), 1580 arrow', notes: '', updatedAt: now },
+    { id: now+4,  name: 'Central Kitchen', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=8F31579C770BA13B72516F5C2FB0A6855D622C5A04D5A5170005891B1AA99F781E704570D6CFA07717FF8D5CBF204804099D883FA1771858F6D1E8C0C5017931', doorCode: '1104', notes: '', updatedAt: now },
+    { id: now+5,  name: 'Crown Gardens', address: 'Batemans Bay NSW 2536',                          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=83060386D29818854D4729C28FA6C5C6A8A7ABF106F54973C517232971F5EC942383B3DD4A9762DECB5901CCBD7E5404740156D73F2FAEDDD923C555884BBB81&g=18557', doorCode: '7931', notes: '', updatedAt: now },
+    { id: now+6,  name: 'Culburra', address: 'Culburra Beach NSW 2540',                        signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=E116A22D3F898F97EBDE1BD48618121ACFD9175398C3AC2B231819D7DD0FF6EAEC6A0847FCAF6C7B88ABAF49C49BEEAADD77DB76763A2ACE3C09DB6A7A28F896&g=18558', doorCode: '2020# / 2355#', notes: '', updatedAt: now },
+    { id: now+7,  name: 'Dalmeny', address: 'Dalmeny NSW 2546',                               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=55F3CA89A042FD4770C7B094F2289AD53DB0AA40E08955BA883A7B8797470BE8E1C1143B997A18499D9140E30E6033CB1F7D3625B0CE7CB21D1BAD86A409C734&g=18559', doorCode: '', notes: '', updatedAt: now },
+    { id: now+8,  name: 'Diment Towers', address: '39-45 Staff St, Wollongong NSW 2500',            signInUrl: '', doorCode: 'Front door: 2580*', notes: '', updatedAt: now },
+    { id: now+9,  name: 'Five Islands Court', address: '25 Quarry St, Port Kembla NSW 2505',            signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=39E3F728B268392EA388E218339B17DB564F4E9F4831EA859279F5087D966A0AC62798EB6C926576832678C24AA12DADFFD0686459B5C9B06B9F3482A73CC315&g=18561', doorCode: 'Outside doors: 2505#, House 3: *234', notes: '', updatedAt: now },
+    { id: now+10, name: 'Greenwell Gardens', address: '4 Brereton St, Nowra NSW 2541',                  signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F22B86D835A07ADF61BB2E7EF2BE7EB2C316BF6DA33D6751C493C944B63E8B96C84345C91E36A71F95729DA2AE658775E2786BE07CEFBA093915FF0093BEC0E2&g=18562', doorCode: '479e', notes: '', updatedAt: now },
+    { id: now+11, name: 'Henry Brooks', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F91DBC2E1A0112D3E1816ED0294096AF6A7D6F818113FF4E0482831C4903CD901A8CD4DF2962CB804FEE5F49418ED20B816D570394B38503DC2C35ADDBDF306D&g=18565', doorCode: '', notes: '', updatedAt: now },
+    { id: now+12, name: 'Howard Court', address: '1 Ross St, Wollongong NSW 2500',                 signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D3BBD4FC38BEB92E0AAF8E6305F0BF108F9FF5A8D136E5E1020C77D3EA7C70CB37C2F9D5D291AD5DD40C2572462745D03544A834F3F84EC8EB0664FA5D733E22', doorCode: '#2377', notes: '', updatedAt: now },
+    { id: now+13, name: 'Kangara', address: '2 Joy Cummings Pl, Belconnen ACT 2617',          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=3D4A4DFF44A5AC72DB22643E861214E2E5CC22C9AA193A2E9B8BE8A3040AC5B77C5761D1309EE7DD8D7075033138C52B881A2E6E278096F5D0443E662E806D74&g=18566', doorCode: '', notes: '', updatedAt: now },
+    { id: now+14, name: 'Kimera Hostel Lock Box', address: '',                                               signInUrl: '', doorCode: '2540', notes: '', updatedAt: now },
+    { id: now+15, name: 'Lock Box', address: '',                                               signInUrl: '', doorCode: '0318', notes: '', updatedAt: now },
+    { id: now+16, name: 'MacArthur', address: '1 Hyde Parade, Campbelltown NSW 2560',          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=42599AD7DDA567E98A3007F45C6192939E1C541E6B8B845339B368BA8C045FB192131A9B567971EBCA1A43F162F33E61DB0092099CBA0040A6AFCF747F35BA56', doorCode: 'Block door: Key 01653, Dimenta wing: 357e, RCF kit/Utility: 4806', notes: '', updatedAt: now },
+    { id: now+17, name: 'Marco Polo Unanderra', address: 'Unanderra NSW 2526',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C91BCED484B4E53377D4BF66E7959C8503039D5143A7B11C3F5E52E27096A539CB9FD1D96A860481CFADD16E28F220C1B8D4B578938E65BD9071A8FB877C76AB&g=19971', doorCode: '35527', notes: '', updatedAt: now },
+    { id: now+18, name: 'Marco Polo Woonona', address: '11 Watergum Way, Woonona NSW 2517',             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=0B3C4E57C574EDF48BBB114F72163076756E808B277023A63F6F8C27ED9082784426564E504B3D7A9CEABD2D5652683B75FC73DA54076BD366BF9B38A9DC7187&g=19970', doorCode: 'Front door: 2016, Fire stairs: 3699', notes: '', updatedAt: now },
+    { id: now+19, name: 'McCauley Lodge', address: 'Nowra NSW 2541',                                 signInUrl: '', doorCode: '2515#', notes: '', updatedAt: now },
+    { id: now+20, name: 'Milton', address: 'Milton NSW 2538',                                signInUrl: '', doorCode: '2006#', notes: '', updatedAt: now },
+    { id: now+21, name: 'Moruya', address: '35-39 River St, Moruya NSW 2537',               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=760F31FA84B7089B0EBBC6B1EEBA3693F790744B16E65A25283D9ECA6B05905014C0D83680AE54A8D2212B03CF4A2A271A8EDB25BC065F8AA416F881E44F25E3&g=18567', doorCode: '0#', notes: '', updatedAt: now },
+    { id: now+22, name: 'Parkside', address: '1 Ross St, Wollongong NSW 2500',                 signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C4431D98F17ABE034FD5255BC30C4A6894EA641DDA659DB2B14CBF974AA12FD60907ADA2AAEAA4523B464161DCF5AFA781A261EE539EF46E19663ED216D64CD9', doorCode: 'Front door: #7275, Lock box in workshop: 6482', notes: '', updatedAt: now },
+    { id: now+23, name: 'Peakhurst EKC', address: '24 Turpentine Ave, Peakhurst NSW 2210',         signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=FAF918DE2AB2F7EE166D10A5878863DB12BAB9EF22DB4D614F7B35E7A5C52C11E0586E7C2A42BF3A7F1EB31D9AAAA85CC34C605F0FE7706F2FAD1250A0307E80&g=18569', doorCode: 'Gate: 210, Door: 8963', notes: '', updatedAt: now },
+    { id: now+24, name: 'Sans Souci', address: 'Sans Souci NSW 2219',                            signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=497EDA70A3C1F1AC1488E13430E027A44837AEE997D4ABF1F05F4D798D389D60412A613BCD0839AC777B47475CC0F9DD0D7283201F83F3FF878BAF3160FF01A1&g=18630', doorCode: '', notes: '', updatedAt: now },
+    { id: now+25, name: 'St George Basin', address: '87 Loralyn Ave, St Georges Basin NSW 2540',     signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=B46312D66602D0B6F0397592F2BA5F1C7DBCEF02A5EAD98632417E6C8D995F4D26E5704673E8C8B3705A707339EFAB423358B361EB98B4E5CA169EE155419D5D&g=18571', doorCode: '', notes: '', updatedAt: now },
+    { id: now+26, name: 'Tarrawanna Care Centre', address: '74-80 Caldwell Ave, Tarrawanna NSW 2518',       signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=578FA9E94E07FBEBED321E59A3BC7D583F99537D5247BE58BFDD80332898287CF762CD31F37EA0FF1F146A527A9A130877E1A4EB87690BB3ED7FD9F5E70F10DE&g=18572', doorCode: '8152↩, Laundry lock box: 0005, Basement: 2019, Dementia: 3697, Lift: 3697', notes: '', updatedAt: now },
+    { id: now+27, name: 'Tarrawanna Depot', address: 'Tarrawanna NSW 2518',                            signInUrl: '', doorCode: '6482 arrow', notes: '', updatedAt: now },
+    { id: now+28, name: 'Tarrawanna Village', address: 'Tarrawanna NSW 2518',                            signInUrl: '', doorCode: 'Community room: 2518', notes: '', updatedAt: now },
+    { id: now+29, name: 'The Clyde', address: 'Batemans Bay NSW 2536',                          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=286B8AF939167056A769FE357D1EDFB6E575CADE8FAAD16775AE46881944EACDF770AF42A287F542EBB872FA0F6ECA422288F199D5FE6802ED5D5DB3C1F11AC3&g=18574', doorCode: '0809', notes: '', updatedAt: now },
+    { id: now+30, name: 'Thomas Holt Kirrawee', address: 'Kirrawee NSW 2232',                              signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=CB04883D37BDC13F74F3E183B2F2A75364C5ABA46EBC4CC50F1A241A4C10465CF1FF127035D2B63A790004BEFDFA17C90FDA1B387F492F5EF69D2DC0771E7043', doorCode: '', notes: '', updatedAt: now },
+    { id: now+31, name: 'Towradgi', address: 'Towradgi NSW 2518',                              signInUrl: '', doorCode: 'Tasman CRT: 3939e, Max Diment: 3935e, Common room: 4251, Nursing home door: 1975e', notes: '', updatedAt: now },
+    { id: now+32, name: 'UC Unanderra N/H', address: 'Unanderra NSW 2526',                             signInUrl: '', doorCode: 'Rear door: 4223e, Lift: 1234, Front door: 1524#, Utility rooms: 1234, Dementia wing: 1524#', notes: '', updatedAt: now },
+    { id: now+33, name: 'William Beach Gardens', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=46700196231D026EA97A1E9B7212648134B4B65C55C88E49877504EE360F3C77AF317E9841C548BCBB91EF4C04807996AC41FEDE1380B55437FA0FB16F81BF58', doorCode: 'Flinders: 2530, 57042#, Accuna: 3697', notes: '', updatedAt: now },
+    { id: now+34, name: 'Woolwich', address: 'Woolwich NSW 2110',                              signInUrl: '', doorCode: '2110', notes: '', updatedAt: now },
+    { id: now+35, name: 'Woonona', address: 'Popes Rd, Woonona NSW 2517',                    signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D747F07DDA7ECA76A645DA3AF11086764789197774C179F95A68BA702E14581548773A03B6B3E1151953455B4156343C2319B13C46B1FD2C93533115D9380A9D', doorCode: 'Flametree: 2540, Church: 1973', notes: '', updatedAt: now },
+  ];
+  saveLocal();
+}
+
+// ─────────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPass').value;
+  const errorEl  = document.getElementById('loginError');
+  errorEl.style.display = 'none';
+
+  if (!username || !password) {
+    errorEl.textContent = 'Please enter your username and password.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const hash = await sha256(password);
+  const user = _users.find(u => u.username === username && u.password === hash);
+
+  if (!user) {
+    errorEl.textContent = 'Invalid username or password.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  _session = { username: user.username, name: user.name, role: user.role, ts: Date.now() };
+  localStorage.setItem(K_SESSION, JSON.stringify(_session));
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  bootApp();
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  _session = null;
+  localStorage.removeItem(K_SESSION);
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function requireAdmin() {
+  return _session && _session.role === 'admin';
+}
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+async function init() {
+  loadLocal();
+  await seedDefaultAdmin();
+
+  // Check for existing session
+  if (_session) {
+    // Validate session user still exists
+    const still = _users.find(u => u.username === _session.username);
+    if (still) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appShell').style.display = 'block';
+      bootApp();
+      return;
+    }
+  }
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function bootApp() {
+  document.getElementById('headerUserName').textContent = _session.name;
+
+  // Show/hide admin controls
+  const isAdmin = requireAdmin();
+  document.getElementById('usersTabBtn').style.display = isAdmin ? '' : 'none';
+  document.getElementById('addSiteBtn').style.display  = isAdmin ? '' : 'none';
+
+  renderSites();
+  renderUsers();
+  initFirebase();
+}
+
+// ─────────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────────
+function switchTab(tab) {
+  ['sites','users','settings'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
+    document.querySelector(`[data-tab="${t}"]`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'users') renderUsers();
+}
+
+// ─────────────────────────────────────────────
+//  SITES — RENDER
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  GPS SORT
+// ─────────────────────────────────────────────
+let _userLat = null;
+let _userLng = null;
+let _gpsActive = false;
+
+function toggleGpsSort() {
+  if (_gpsActive) {
+    _gpsActive = false;
+    _userLat = null;
+    _userLng = null;
+    document.getElementById('gpsSortBtn').classList.remove('active', 'locating');
+    renderSites();
+    return;
+  }
+  const btn = document.getElementById('gpsSortBtn');
+  btn.classList.add('locating');
+  if (!navigator.geolocation) { toast('GPS not available on this device.', 'error'); btn.classList.remove('locating'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    _userLat = pos.coords.latitude;
+    _userLng = pos.coords.longitude;
+    _gpsActive = true;
+    btn.classList.remove('locating');
+    btn.classList.add('active');
+    geocodeAddresses().then(() => renderSites());
+  }, err => {
+    btn.classList.remove('locating');
+    toast('Could not get your location.', 'error');
+  }, { timeout: 10000, maximumAge: 60000 });
+}
+
+// Geocode any sites that have an address but no lat/lng cached
+async function geocodeAddresses() {
+  const todo = _sites.filter(s => s.address && (s._lat === undefined || s._lat === null));
+  for (const s of todo) {
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(s.address)}`);
+      const d = await r.json();
+      if (d && d[0]) { s._lat = parseFloat(d[0].lat); s._lng = parseFloat(d[0].lon); }
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 120)); // Nominatim rate limit
+  }
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function formatDist(km) {
+  return km < 1 ? `${Math.round(km*1000)}m away` : `${km.toFixed(1)}km away`;
+}
+
+function renderSites() {
+  const q   = (document.getElementById('searchInput').value || '').toLowerCase();
+  const list = _sites.filter(s => {
+    if (!q) return true;
+    return (s.name||'').toLowerCase().includes(q) ||
+           (s.address||'').toLowerCase().includes(q) ||
+           (s.notes||'').toLowerCase().includes(q) ||
+           (s.doorCode||'').toLowerCase().includes(q);
+  });
+
+  // Sort by distance if GPS active, otherwise alphabetically
+  if (_userLat !== null && _userLng !== null) {
+    list.forEach(s => { s._dist = s._lat && s._lng ? haversine(_userLat, _userLng, s._lat, s._lng) : Infinity; });
+    list.sort((a,b) => a._dist - b._dist);
+  } else {
+    list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  }
+
+  document.getElementById('siteCount').textContent =
+    `${list.length} site${list.length !== 1 ? 's' : ''}${q ? ' matching "'+q+'"' : ''}`;
+
+  const grid = document.getElementById('siteGrid');
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🏢</div>${q ? 'No sites match your search.' : 'No sites added yet.'}</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((s, i) => {
+    const signInBtn = s.signInUrl
+      ? `<a class="btn btn-signin" href="${s.signInUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+           Sign In / Out
+         </a>`
+      : '';
+    const navBtn = s.address
+      ? `<button class="btn btn-nav" onclick="event.stopPropagation(); openMaps(${JSON.stringify(s.address)}, ${JSON.stringify(s.name)})">
+           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+           Navigate
+         </button>`
+      : '';
+    const editBtn = `<button class="btn btn-edit-site" onclick="event.stopPropagation(); openEditPage(${s.id})">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+           Edit
+         </button>`;
+    const delBtn = requireAdmin()
+      ? `<button class="btn btn-delete-site" onclick="event.stopPropagation(); deleteSite(${s.id})">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+           Delete
+         </button>`
+      : '';
+    return `
+    <div class="site-card ${_expandedId === s.id ? 'expanded' : ''}" id="card-${s.id}" onclick="toggleCard(${s.id})">
+      <div class="site-card-header">
+        <div class="site-index">${String(i+1).padStart(2,'0')}</div>
+        <div style="flex:1">
+          <div class="site-name">${esc(s.name)}</div>
+          ${s.address ? `<div class="site-addr">${esc(s.address)}</div>` : ''}
+          ${(s._dist !== undefined && s._dist !== Infinity) ? `<div class="dist-badge">${formatDist(s._dist)}</div>` : ''}
+        </div>
+      </div>
+      <div class="site-detail">
+        ${s.address ? `<div style="margin-bottom:12px"><div class="detail-label">Address</div><div class="detail-value" style="margin-top:4px;font-size:13px">${esc(s.address)}</div></div>` : ''}
+        ${s.doorCode ? `<div style="margin-bottom:12px"><div class="detail-label">Door / Access Code</div><div class="detail-value" style="margin-top:5px"><span class="code-pill">${esc(s.doorCode)}<button class="copy-btn" title="Copy" onclick="event.stopPropagation(); copyCode(this, ${JSON.stringify(s.doorCode)})">⎘</button></span></div></div>` : ''}
+        ${s.notes ? `<div class="detail-label">Notes</div><div class="notes-box" style="margin-bottom:12px">${esc(s.notes)}</div>` : ''}
+        <div class="site-action-row">${signInBtn}${navBtn}${editBtn}${delBtn}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+}
+
+function toggleCard(id) {
+  _expandedId = _expandedId === id ? null : id;
+  renderSites();
+}
+
+function esc(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function copyCode(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.classList.add('copied');
+    btn.textContent = '✓';
+    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘'; }, 2000);
+    toast('Code copied!', 'success');
+  });
+}
+// ─────────────────────────────────────────────
+//  EDIT PAGE
+// ─────────────────────────────────────────────
+function openEditPage(id) {
+  const s = _sites.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('editSiteId').value        = id;
+  document.getElementById('editPageTitle').textContent = s.name;
+  document.getElementById('editSiteName').value      = s.name || '';
+  document.getElementById('editSiteAddress').value   = s.address || '';
+  document.getElementById('editSiteSignInUrl').value = s.signInUrl || '';
+  document.getElementById('editSiteDoorCode').value  = s.doorCode || '';
+  document.getElementById('editSiteNotes').value     = s.notes || '';
+  document.getElementById('editPage').classList.add('open');
+  window.scrollTo(0, 0);
+}
+
+function closeEditPage() {
+  document.getElementById('editPage').classList.remove('open');
+}
+
+function saveEditPage() {
+  const id   = Number(document.getElementById('editSiteId').value);
+  const name = document.getElementById('editSiteName').value.trim();
+  if (!name) { toast('Site name is required.', 'error'); return; }
+
+  const idx = _sites.findIndex(s => s.id === id);
+  if (idx < 0) { toast('Site not found.', 'error'); return; }
+
+  _sites[idx] = {
+    ..._sites[idx],
+    name:      name,
+    address:   document.getElementById('editSiteAddress').value.trim(),
+    signInUrl: document.getElementById('editSiteSignInUrl').value.trim(),
+    doorCode:  document.getElementById('editSiteDoorCode').value.trim(),
+    notes:     document.getElementById('editSiteNotes').value.trim(),
+    updatedAt: Date.now()
+  };
+
+  saveLocal();
+  closeEditPage();
+  renderSites();
+  scheduleSyncToFirebase();
+  toast('Site saved.', 'success');
+}
+
+// ─────────────────────────────────────────────
+//  GPS / MAPS NAVIGATION
+// ─────────────────────────────────────────────
+function openMaps(address, name) {
+  const query = encodeURIComponent(address || name);
+  // On iOS/Android opens native Maps; on desktop opens Google Maps in browser
+  const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  if (isIOS) {
+    window.open('maps://?q=' + query, '_blank');
+  } else if (isAndroid) {
+    window.open('geo:0,0?q=' + query, '_blank');
+  } else {
+    window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
+  }
+}
+
+
+
+// ─────────────────────────────────────────────
+//  SITES — ADD / EDIT / DELETE
+// ─────────────────────────────────────────────
+function openSiteModal(id = null) {
+  const s = id ? _sites.find(x => x.id === id) : null;
+  document.getElementById('siteModalTitle').textContent = s ? 'Edit Site' : 'Add Site';
+  document.getElementById('siteId').value       = id || '';
+  document.getElementById('siteName').value     = s ? s.name     : '';
+  document.getElementById('siteAddress').value  = s ? s.address  : '';
+  document.getElementById('siteSignInUrl').value = s ? s.signInUrl : '';
+  document.getElementById('siteDoorCode').value = s ? s.doorCode : '';
+  document.getElementById('siteNotes').value    = s ? s.notes    : '';
+  document.getElementById('siteModal').classList.add('open');
+}
+
+function closeSiteModal() {
+  document.getElementById('siteModal').classList.remove('open');
+}
+
+function saveSite() {
+  const name = document.getElementById('siteName').value.trim();
+  if (!name) { toast('Site name is required.', 'error'); return; }
+
+  const id = document.getElementById('siteId').value;
+  const site = {
+    id:        id ? Number(id) : Date.now(),
+    name:      name,
+    address:   document.getElementById('siteAddress').value.trim(),
+    signInUrl: document.getElementById('siteSignInUrl').value.trim(),
+    doorCode:  document.getElementById('siteDoorCode').value.trim(),
+    notes:     document.getElementById('siteNotes').value.trim(),
+    updatedAt: Date.now()
+  };
+
+  if (id) {
+    const idx = _sites.findIndex(s => s.id === Number(id));
+    if (idx >= 0) _sites[idx] = site;
+  } else {
+    _sites.push(site);
+  }
+
+  saveLocal();
+  closeSiteModal();
+  renderSites();
+  scheduleSyncToFirebase();
+  toast(id ? 'Site updated.' : 'Site added.', 'success');
+}
+
+function deleteSite(id) {
+  if (!confirm('Delete this site? This cannot be undone.')) return;
+  _sites = _sites.filter(s => s.id !== id);
+  _expandedId = null;
+  saveLocal();
+  renderSites();
+  scheduleSyncToFirebase();
+  toast('Site deleted.', 'success');
+}
+
+// ─────────────────────────────────────────────
+//  USERS — RENDER
+// ─────────────────────────────────────────────
+function renderUsers() {
+  const tbody = document.getElementById('usersBody');
+  tbody.innerHTML = _users.map(u => `
+    <tr>
+      <td>${esc(u.name)}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${esc(u.username)}</td>
+      <td><span class="role-badge ${u.role}">${u.role}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.id})">Edit</button>
+          ${u.username !== _session.username
+            ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✕</button>`
+            : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+//  USERS — ADD / EDIT
+// ─────────────────────────────────────────────
+function openUserModal(id = null) {
+  const u = id ? _users.find(x => x.id === id) : null;
+  document.getElementById('userModalTitle').textContent = u ? 'Edit User' : 'Add User';
+  document.getElementById('userId').value    = id || '';
+  document.getElementById('userName').value  = u ? u.name     : '';
+  document.getElementById('userUsername').value = u ? u.username : '';
+  document.getElementById('userPassword').value = '';
+  document.getElementById('userPasswordConfirm').value = '';
+  document.getElementById('userRole').value  = u ? u.role     : 'user';
+  document.getElementById('userModalError').style.display = 'none';
+
+  // If editing, password is optional
+  document.getElementById('passLabel').textContent = u ? 'New Password (leave blank to keep)' : 'Password *';
+  document.getElementById('passConfirmGroup').style.display = u ? '' : '';
+
+  document.getElementById('userModal').classList.add('open');
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').classList.remove('open');
+}
+
+async function saveUser() {
+  const id       = document.getElementById('userId').value;
+  const name     = document.getElementById('userName').value.trim();
+  const username = document.getElementById('userUsername').value.trim().toLowerCase();
+  const password = document.getElementById('userPassword').value;
+  const confirm  = document.getElementById('userPasswordConfirm').value;
+  const role     = document.getElementById('userRole').value;
+  const errEl    = document.getElementById('userModalError');
+
+  errEl.style.display = 'none';
+
+  if (!name || !username) {
+    errEl.textContent = 'Name and username are required.'; errEl.style.display = 'block'; return;
+  }
+  if (!id && !password) {
+    errEl.textContent = 'Password is required for new users.'; errEl.style.display = 'block'; return;
+  }
+  if (password && password !== confirm) {
+    errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
+  }
+  if (password && password.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return;
+  }
+
+  // Check username uniqueness
+  const existing = _users.find(u => u.username === username && u.id !== Number(id));
+  if (existing) {
+    errEl.textContent = 'Username already taken.'; errEl.style.display = 'block'; return;
+  }
+
+  let user;
+  if (id) {
+    user = _users.find(u => u.id === Number(id));
+    user.name     = name;
+    user.username = username;
+    user.role     = role;
+    if (password) user.password = await sha256(password);
+  } else {
+    user = { id: Date.now(), name, username, password: await sha256(password), role };
+    _users.push(user);
+  }
+
+  saveLocal();
+  closeUserModal();
+  renderUsers();
+  scheduleSyncToFirebase();
+  toast(id ? 'User updated.' : 'User added.', 'success');
+}
+
+function deleteUser(id) {
+  const u = _users.find(u => u.id === id);
+  if (!confirm(`Delete user "${u.name}"?`)) return;
+  _users = _users.filter(u => u.id !== id);
+  saveLocal();
+  renderUsers();
+  scheduleSyncToFirebase();
+  toast('User deleted.', 'success');
+}
+
+// ─────────────────────────────────────────────
+//  CHANGE PASSWORD
+// ─────────────────────────────────────────────
+function openChangePasswordModal() {
+  document.getElementById('cpCurrent').value = '';
+  document.getElementById('cpNew').value = '';
+  document.getElementById('cpConfirm').value = '';
+  document.getElementById('cpError').style.display = 'none';
+  document.getElementById('changePwModal').classList.add('open');
+}
+
+async function doChangePassword() {
+  const current = document.getElementById('cpCurrent').value;
+  const nw      = document.getElementById('cpNew').value;
+  const conf    = document.getElementById('cpConfirm').value;
+  const errEl   = document.getElementById('cpError');
+  errEl.style.display = 'none';
+
+  const currentHash = await sha256(current);
+  const user = _users.find(u => u.username === _session.username);
+
+  if (user.password !== currentHash) {
+    errEl.textContent = 'Current password is incorrect.'; errEl.style.display = 'block'; return;
+  }
+  if (nw.length < 6) {
+    errEl.textContent = 'New password must be at least 6 characters.'; errEl.style.display = 'block'; return;
+  }
+  if (nw !== conf) {
+    errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return;
+  }
+
+  user.password = await sha256(nw);
+  saveLocal();
+  scheduleSyncToFirebase();
+  document.getElementById('changePwModal').classList.remove('open');
+  toast('Password updated.', 'success');
+}
+
+// ─────────────────────────────────────────────
+//  BACKUP / RESTORE
+// ─────────────────────────────────────────────
+function doBackup() {
+  const data = {
+    version: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    sites: _sites,
+    users: _users
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `ostrichlogin-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup downloaded.', 'success');
+}
+
+function doRestore(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data.sites) || !Array.isArray(data.users)) {
+        toast('Invalid backup file.', 'error'); return;
+      }
+      if (!confirm(`Restore ${data.sites.length} sites and ${data.users.length} users?\n\nThis will REPLACE all current data.`)) {
+        input.value = ''; return;
+      }
+      _sites = data.sites;
+      _users = data.users;
+      saveLocal();
+      renderSites();
+      renderUsers();
+      scheduleSyncToFirebase();
+      toast(`Restored ${_sites.length} sites, ${_users.length} users.`, 'success');
+    } catch {
+      toast('Failed to parse backup file.', 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─────────────────────────────────────────────
+//  FIREBASE
+// ─────────────────────────────────────────────
+function initFirebase() {
+  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+    setSyncStatus('offline', 'Firebase not configured — running locally only');
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.type = 'module';
+  script.textContent = `
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, doc, onSnapshot, setDoc, getDoc }
+      from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const app = initializeApp(${JSON.stringify(FIREBASE_CONFIG)});
+    const db  = getFirestore(app);
+    window._ostrichFirestore = db;
+    window._ostrichDoc = doc(db, 'ostrich_sites', 'main');
+
+    // Listen for remote changes
+    onSnapshot(window._ostrichDoc, snap => {
+      if (!snap.exists()) return;
+      const remote = snap.data();
+      if (!remote.ts) return;
+      if (remote.ts <= window._ostrichSyncTs) return;
+      window._ostrichApplyRemote(remote);
+    }, err => {
+      window._ostrichSetSyncStatus('error', 'Sync error: ' + err.message);
+    });
+
+    window._ostrichFirebaseReady = true;
+    window._ostrichSetSyncStatus('synced', 'Connected');
+    window._ostrichSyncNow();
+  `;
+  document.head.appendChild(script);
+
+  window._ostrichSyncTs = 0;
+
+  window._ostrichApplyRemote = (remote) => {
+    window._ostrichSyncTs = remote.ts;
+    _sites = remote.sites || [];
+    _users = remote.users || [];
+    saveLocal();
+    renderSites();
+    renderUsers();
+    setSyncStatus('synced', 'Synced ' + new Date().toLocaleTimeString());
+  };
+
+  window._ostrichSetSyncStatus = setSyncStatus;
+
+  window._ostrichSyncNow = async () => {
+    if (!window._ostrichDoc) return;
+    setSyncStatus('syncing', 'Syncing…');
+    try {
+      const { setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      const ts = Date.now();
+      window._ostrichSyncTs = ts;
+      await setDoc(window._ostrichDoc, { sites: _sites, users: _users, ts });
+      setSyncStatus('synced', 'Synced ' + new Date().toLocaleTimeString());
+    } catch(e) {
+      setSyncStatus('error', 'Sync failed: ' + e.message);
+    }
+  };
+}
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot ' + (state === 'syncing' ? 'syncing' : state === 'synced' ? 'synced' : state === 'error' ? 'error' : '');
+  const el = document.getElementById('syncStatusText');
+  if (el) el.textContent = msg || '';
+}
+
+function scheduleSyncToFirebase() {
+  clearTimeout(_syncTimer);
+  setSyncStatus('syncing', 'Pending…');
+  _syncTimer = setTimeout(() => {
+    if (window._ostrichSyncNow) window._ostrichSyncNow();
+  }, 3000);
+}
+
+function syncNow() {
+  if (window._ostrichSyncNow) window._ostrichSyncNow();
+  else toast('Firebase not configured.', 'error');
+}
+
+// ─────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────
+let _toastTimer;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.className = type; }, 2800);
+}
+
+// ─────────────────────────────────────────────
+//  QR SCANNER
+// ─────────────────────────────────────────────
+let _qrTargetField = null;
+let _qrStream = null;
+let _qrAnimFrame = null;
+let _qrCanvas = null;
+let _qrCtx = null;
+
+function openQrScanner(fieldId) {
+  _qrTargetField = fieldId;
+  document.getElementById('qrOverlay').classList.add('open');
+
+  if (!_qrCanvas) {
+    _qrCanvas = document.createElement('canvas');
+    _qrCtx = _qrCanvas.getContext('2d', { willReadFrequently: true });
+  }
+
+  const video = document.getElementById('qrVideo');
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    .then(stream => {
+      _qrStream = stream;
+      video.srcObject = stream;
+      video.play();
+      video.addEventListener('loadedmetadata', startQrScan, { once: true });
+    })
+    .catch(err => {
+      closeQrScanner();
+      toast('Camera access denied.', 'error');
+    });
+}
+
+function startQrScan() {
+  const video = document.getElementById('qrVideo');
+  _qrCanvas.width  = video.videoWidth;
+  _qrCanvas.height = video.videoHeight;
+
+  function tick() {
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      _qrCtx.drawImage(video, 0, 0, _qrCanvas.width, _qrCanvas.height);
+      const imageData = _qrCtx.getImageData(0, 0, _qrCanvas.width, _qrCanvas.height);
+      try {
+        // Use BarcodeDetector if available (Android Chrome, modern browsers)
+        if (window._barcodeDetector) {
+          window._barcodeDetector.detect(_qrCanvas).then(codes => {
+            if (codes.length > 0) {
+              onQrResult(codes[0].rawValue);
+              return;
+            }
+          }).catch(() => {});
+        }
+      } catch(e) {}
+    }
+    _qrAnimFrame = requestAnimationFrame(tick);
+  }
+
+  // Try BarcodeDetector API first (native, no library needed)
+  if ('BarcodeDetector' in window) {
+    window._barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+    _qrAnimFrame = requestAnimationFrame(tick);
+  } else {
+    // Fallback: load jsQR library
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+    script.onload = () => {
+      function tickJsQR() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          _qrCtx.drawImage(video, 0, 0, _qrCanvas.width, _qrCanvas.height);
+          const imageData = _qrCtx.getImageData(0, 0, _qrCanvas.width, _qrCanvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+          if (code && code.data) { onQrResult(code.data); return; }
+        }
+        _qrAnimFrame = requestAnimationFrame(tickJsQR);
+      }
+      _qrAnimFrame = requestAnimationFrame(tickJsQR);
+    };
+    document.head.appendChild(script);
+  }
+}
+
+function onQrResult(value) {
+  cancelAnimationFrame(_qrAnimFrame);
+  closeQrScanner();
+  if (_qrTargetField) {
+    document.getElementById(_qrTargetField).value = value;
+  }
+  toast('QR code scanned!', 'success');
+}
+
+function closeQrScanner() {
+  document.getElementById('qrOverlay').classList.remove('open');
+  cancelAnimationFrame(_qrAnimFrame);
+  if (_qrStream) {
+    _qrStream.getTracks().forEach(t => t.stop());
+    _qrStream = null;
+  }
+  const video = document.getElementById('qrVideo');
+  video.srcObject = null;
+}
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
