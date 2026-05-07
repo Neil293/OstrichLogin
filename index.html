@@ -663,6 +663,75 @@
   }
 
   .role-badge.admin { background: rgba(232,160,32,0.15); color: var(--accent); }
+
+  .perm-section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 16px 0 10px;
+    display: block;
+  }
+
+  .perm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .perm-row:last-child { border-bottom: none; }
+
+  .perm-label { font-size: 13px; color: var(--text); }
+  .perm-desc  { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border2);
+    border-radius: 22px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--success); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  .perm-admin-note {
+    font-size: 11px;
+    color: var(--text3);
+    font-style: italic;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
   .role-badge.user { background: rgba(68,144,224,0.12); color: var(--info); }
 
   /* ── SETTINGS TAB ─────────────────────────── */
@@ -1132,7 +1201,7 @@
 
     <!-- ── SETTINGS TAB ── -->
     <div id="tab-settings" style="display:none">
-      <div class="settings-section">
+      <div class="settings-section" id="dataSection">
         <div class="settings-section-title">Data</div>
         <div class="settings-row">
           <div>
@@ -1261,6 +1330,25 @@
           <option value="admin">Admin</option>
         </select>
       </div>
+      <div id="permissionsSection">
+        <span class="perm-section-label">Permissions</span>
+        <div class="perm-row">
+          <div><div class="perm-label">Edit Sites</div><div class="perm-desc">Can edit site details, address, codes</div></div>
+          <label class="toggle"><input type="checkbox" id="permEditSites" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="perm-row">
+          <div><div class="perm-label">Add Access Codes</div><div class="perm-desc">Can add or modify access codes</div></div>
+          <label class="toggle"><input type="checkbox" id="permAccessCodes" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="perm-row">
+          <div><div class="perm-label">Sign In / Out</div><div class="perm-desc">Can use the sign-in URL button</div></div>
+          <label class="toggle"><input type="checkbox" id="permSignIn" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="perm-row">
+          <div><div class="perm-label">Navigate</div><div class="perm-desc">Can use GPS navigation</div></div>
+          <label class="toggle"><input type="checkbox" id="permNavigate" checked><span class="toggle-slider"></span></label>
+        </div>
+      </div>
       <div class="error-msg" id="userModalError"></div>
     </div>
     <div class="modal-footer">
@@ -1332,7 +1420,7 @@
         </button>
       </div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="editAccessCodesSection">
       <label>Access Codes</label>
       <div id="editAccessCodesList"></div>
       <button type="button" class="ac-add-btn" onclick="addAccessCodeRow()">+ Add code</button>
@@ -1428,15 +1516,44 @@ function saveLocal() {
 // ─────────────────────────────────────────────
 async function seedDefaultAdmin() {
   if (_users.length === 0) {
-    const hash = await sha256('admin123');
-    _users = [{
-      id: Date.now(),
-      username: 'neil',
-      password: hash,
-      name: 'Neil Auchterlonie',
-      role: 'admin'
-    }];
+    const adminHash = await sha256('admin');
+    const fmpsHash  = await sha256('fmps1510');
+    _users = [
+      {
+        id: Date.now(),
+        username: 'neil',
+        password: adminHash,
+        name: 'Neil Auchterlonie',
+        role: 'admin'
+      },
+      {
+        id: Date.now() + 1,
+        username: 'fmps',
+        password: fmpsHash,
+        name: 'Fairy Meadow Plumbing',
+        role: 'user'
+      }
+    ];
     saveLocal();
+  } else {
+    // Ensure FMPS account exists if missing (migration for existing installs)
+    if (!_users.find(u => u.username === 'fmps')) {
+      const fmpsHash = await sha256('fmps1510');
+      _users.push({
+        id: Date.now() + 1,
+        username: 'fmps',
+        password: fmpsHash,
+        name: 'Fairy Meadow Plumbing',
+        role: 'user'
+      });
+      saveLocal();
+    }
+    // Ensure neil is admin
+    const neil = _users.find(u => u.username === 'neil');
+    if (neil && neil.role !== 'admin') {
+      neil.role = 'admin';
+      saveLocal();
+    }
   }
   if (_sites.length === 0) {
     seedSites();
@@ -1672,6 +1789,7 @@ function bootApp() {
   const isAdmin = requireAdmin();
   document.getElementById('usersTabBtn').style.display = isAdmin ? '' : 'none';
   document.getElementById('addSiteBtn').style.display  = isAdmin ? '' : 'none';
+  document.getElementById('dataSection').style.display = isAdmin ? '' : 'none';
 
   renderSites();
   renderUsers();
@@ -1780,22 +1898,22 @@ function renderSites() {
   }
 
   grid.innerHTML = list.map((s, i) => {
-    const signInBtn = s.signInUrl
+    const signInBtn = (s.signInUrl && hasPermission('signIn'))
       ? `<a class="btn btn-signin" href="${s.signInUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
            Sign In / Out
          </a>`
       : '';
-    const navBtn = s.address
+    const navBtn = (s.address && hasPermission('navigate'))
       ? `<a class="btn btn-nav" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address || s.name)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
            Navigate
          </a>`
       : '';
-    const editBtn = `<button class="btn btn-edit-site" onclick="event.stopPropagation(); openEditPage(${s.id})">
+    const editBtn = hasPermission('editSites') ? `<button class="btn btn-edit-site" onclick="event.stopPropagation(); openEditPage(${s.id})">
            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
            Edit
-         </button>`;
+         </button>` : '';
     const delBtn = requireAdmin()
       ? `<button class="btn btn-delete-site" onclick="event.stopPropagation(); deleteSite(${s.id})">
            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -1866,6 +1984,9 @@ function openEditPage(id) {
   document.getElementById('editSiteSignInUrl').value = s.signInUrl || '';
   renderAccessCodeRows('editAccessCodesList', s.accessCodes || [], 'addAccessCodeRow');
   document.getElementById('editSiteNotes').value     = s.notes || '';
+  // Show/hide access codes editing based on permission
+  const acSection = document.getElementById('editAccessCodesSection');
+  if (acSection) acSection.style.display = hasPermission('accessCodes') ? '' : 'none';
   document.getElementById('editPage').classList.add('open');
   window.scrollTo(0, 0);
 }
@@ -1887,7 +2008,9 @@ function saveEditPage() {
     name:      name,
     address:   document.getElementById('editSiteAddress').value.trim(),
     signInUrl: document.getElementById('editSiteSignInUrl').value.trim(),
-    accessCodes: readAccessCodeRows('editAccessCodesList'),
+    accessCodes: hasPermission('accessCodes')
+      ? readAccessCodeRows('editAccessCodesList')
+      : (_sites.find(x => x.id === id) || {}).accessCodes || [],
     notes:     document.getElementById('editSiteNotes').value.trim(),
     updatedAt: Date.now()
   };
@@ -1961,6 +2084,7 @@ function saveSite() {
 }
 
 function deleteSite(id) {
+  if (!requireAdmin()) { toast('Admin access required.', 'error'); return; }
   if (!confirm('Delete this site? This cannot be undone.')) return;
   _sites = _sites.filter(s => s.id !== id);
   _expandedId = null;
@@ -1973,11 +2097,34 @@ function deleteSite(id) {
 // ─────────────────────────────────────────────
 //  USERS — RENDER
 // ─────────────────────────────────────────────
+function defaultPermissions() {
+  return { editSites: true, accessCodes: true, signIn: true, navigate: true };
+}
+
+function hasPermission(perm) {
+  if (!_session) return false;
+  if (_session.role === 'admin') return true;
+  const user = _users.find(u => u.username === _session.username);
+  if (!user) return false;
+  const perms = user.permissions || defaultPermissions();
+  return !!perms[perm];
+}
+
 function renderUsers() {
   const tbody = document.getElementById('usersBody');
-  tbody.innerHTML = _users.map(u => `
-    <tr>
-      <td>${esc(u.name)}</td>
+  tbody.innerHTML = _users.map(u => {
+    const perms = u.role === 'admin' ? null : (u.permissions || defaultPermissions());
+    const permTags = perms ? Object.entries(perms)
+      .filter(([,v]) => v)
+      .map(([k]) => ({editSites:'Edit Sites', accessCodes:'Access Codes', signIn:'Sign In', navigate:'Navigate'})[k])
+      .filter(Boolean)
+      .map(label => `<span style="font-size:10px;font-family:var(--mono);background:rgba(68,144,224,0.1);color:var(--info);padding:1px 6px;border-radius:3px;margin-right:3px">${label}</span>`)
+      .join('') : '<span style="font-size:10px;font-family:var(--mono);color:var(--accent)">Full access</span>';
+    return `<tr>
+      <td>
+        <div>${esc(u.name)}</div>
+        <div style="margin-top:4px">${permTags}</div>
+      </td>
       <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${esc(u.username)}</td>
       <td><span class="role-badge ${u.role}">${u.role}</span></td>
       <td>
@@ -1988,8 +2135,8 @@ function renderUsers() {
             : ''}
         </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ─────────────────────────────────────────────
@@ -2010,6 +2157,21 @@ function openUserModal(id = null) {
   document.getElementById('passLabel').textContent = u ? 'New Password (leave blank to keep)' : 'Password *';
   document.getElementById('passConfirmGroup').style.display = u ? '' : '';
 
+  // Permissions — hidden for admin (admins always have full access)
+  const role = u ? u.role : 'user';
+  const perms = u ? (u.permissions || defaultPermissions()) : defaultPermissions();
+  const showPerms = role !== 'admin';
+  document.getElementById('permissionsSection').style.display = showPerms ? '' : 'none';
+  document.getElementById('permEditSites').checked    = perms.editSites;
+  document.getElementById('permAccessCodes').checked  = perms.accessCodes;
+  document.getElementById('permSignIn').checked       = perms.signIn;
+  document.getElementById('permNavigate').checked     = perms.navigate;
+
+  // Toggle perms visibility when role changes
+  document.getElementById('userRole').onchange = function() {
+    document.getElementById('permissionsSection').style.display = this.value === 'admin' ? 'none' : '';
+  };
+
   document.getElementById('userModal').classList.add('open');
 }
 
@@ -2024,6 +2186,12 @@ async function saveUser() {
   const password = document.getElementById('userPassword').value;
   const confirm  = document.getElementById('userPasswordConfirm').value;
   const role     = document.getElementById('userRole').value;
+  const permissions = role === 'admin' ? null : {
+    editSites:   document.getElementById('permEditSites').checked,
+    accessCodes: document.getElementById('permAccessCodes').checked,
+    signIn:      document.getElementById('permSignIn').checked,
+    navigate:    document.getElementById('permNavigate').checked,
+  };
   const errEl    = document.getElementById('userModalError');
 
   errEl.style.display = 'none';
@@ -2050,12 +2218,13 @@ async function saveUser() {
   let user;
   if (id) {
     user = _users.find(u => u.id === Number(id));
-    user.name     = name;
-    user.username = username;
-    user.role     = role;
+    user.name        = name;
+    user.username    = username;
+    user.role        = role;
+    user.permissions = permissions;
     if (password) user.password = await sha256(password);
   } else {
-    user = { id: Date.now(), name, username, password: await sha256(password), role };
+    user = { id: Date.now(), name, username, password: await sha256(password), role, permissions };
     _users.push(user);
   }
 
@@ -2067,6 +2236,7 @@ async function saveUser() {
 }
 
 function deleteUser(id) {
+  if (!requireAdmin()) { toast('Admin access required.', 'error'); return; }
   const u = _users.find(u => u.id === id);
   if (!confirm(`Delete user "${u.name}"?`)) return;
   _users = _users.filter(u => u.id !== id);
@@ -2118,6 +2288,7 @@ async function doChangePassword() {
 //  BACKUP / RESTORE
 // ─────────────────────────────────────────────
 function doBackup() {
+  if (!requireAdmin()) { toast('Admin access required.', 'error'); return; }
   const data = {
     version: APP_VERSION,
     exportedAt: new Date().toISOString(),
@@ -2137,6 +2308,7 @@ function doBackup() {
 function doRestore(input) {
   const file = input.files[0];
   if (!file) return;
+  if (!requireAdmin()) { toast('Admin access required.', 'error'); input.value = ''; return; }
   const reader = new FileReader();
   reader.onload = e => {
     try {
