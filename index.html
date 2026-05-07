@@ -874,6 +874,82 @@
     line-height: 1.2;
   }
 
+  .show-qr-btn {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.2;
+  }
+  .show-qr-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* QR display overlay */
+  #qrDisplayOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 400;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #qrDisplayOverlay.open { display: flex; }
+
+  .qr-display-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .qr-display-title {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .qr-display-sub {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  #qrDisplayCanvas {
+    display: block;
+    margin: 0 auto;
+    border-radius: 6px;
+  }
+
+  .qr-display-close {
+    margin-top: 16px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+  }
+
   .no-login-add-btn:hover {
     background: rgba(68,144,224,0.16);
     border-color: var(--info);
@@ -1530,6 +1606,16 @@
   <div class="qr-hint">Point camera at the QR code</div>
 </div>
 
+<!-- ── QR DISPLAY ─────────────────────────────── -->
+<div id="qrDisplayOverlay" onclick="closeSignInQR()">
+  <div class="qr-display-box" onclick="event.stopPropagation()">
+    <div class="qr-display-title" id="qrDisplayTitle"></div>
+    <div class="qr-display-sub">Scan to sign in / out</div>
+    <canvas id="qrDisplayCanvas" width="240" height="240"></canvas>
+    <button class="qr-display-close" onclick="closeSignInQR()">Close</button>
+  </div>
+</div>
+
 <!-- ── TOAST ──────────────────────────────────── -->
 <div id="toast"></div>
 
@@ -2016,8 +2102,14 @@ function renderSites() {
         ${!s.signInUrl ? `
           <div class="no-login-badge" onclick="event.stopPropagation()">
             <span class="no-login-tag">No Login</span>
-            ${hasPermission('editSites') ? `<button class="no-login-add-btn" onclick="openEditPageQR(${s.id})">+ Add URL</button>` : ''}
-          </div>` : ''}
+            ${hasPermission('editSites') ? `<button class="no-login-add-btn" onclick="openEditPageQR(${s.id})">📷 Add QR</button>` : ''}
+          </div>` : `
+          <div class="no-login-badge" onclick="event.stopPropagation()">
+            <button class="show-qr-btn" onclick="showSignInQR(${JSON.stringify(s.signInUrl)}, ${JSON.stringify(s.name)})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+              Show QR
+            </button>
+          </div>`}
       </div>
       <div class="site-detail">
         ${s.address ? `<div style="margin-bottom:12px"><div class="detail-label">Address</div><div class="detail-value" style="margin-top:4px;font-size:13px">${esc(s.address)}</div></div>` : ''}
@@ -2675,6 +2767,84 @@ function closeQrScanner() {
   }
   const video = document.getElementById('qrVideo');
   video.srcObject = null;
+}
+
+// ─────────────────────────────────────────────
+//  QR DISPLAY (show sign-in URL as scannable QR)
+// ─────────────────────────────────────────────
+function showSignInQR(url, name) {
+  document.getElementById('qrDisplayTitle').textContent = name;
+  document.getElementById('qrDisplayOverlay').classList.add('open');
+
+  // Load qrcode library if not already loaded
+  if (window.QRCode) {
+    renderQR(url);
+  } else {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    script.onload = () => renderQR(url);
+    script.onerror = () => renderQRFallback(url);
+    document.head.appendChild(script);
+  }
+}
+
+function renderQR(url) {
+  const canvas = document.getElementById('qrDisplayCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Use QRCode library to generate into a temp div then draw on canvas
+  const tmp = document.createElement('div');
+  tmp.style.display = 'none';
+  document.body.appendChild(tmp);
+
+  try {
+    new QRCode(tmp, {
+      text: url,
+      width: 240,
+      height: 240,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    // QRCode creates an img — draw it onto our canvas
+    setTimeout(() => {
+      const img = tmp.querySelector('img') || tmp.querySelector('canvas');
+      if (img && img.tagName === 'IMG') {
+        const i = new Image();
+        i.onload = () => ctx.drawImage(i, 0, 0, 240, 240);
+        i.src = img.src;
+      } else if (img && img.tagName === 'CANVAS') {
+        ctx.drawImage(img, 0, 0, 240, 240);
+      }
+      document.body.removeChild(tmp);
+    }, 100);
+  } catch(e) {
+    document.body.removeChild(tmp);
+    renderQRFallback(url);
+  }
+}
+
+function renderQRFallback(url) {
+  // Fallback: use Google Charts QR API
+  const canvas = document.getElementById('qrDisplayCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => ctx.drawImage(img, 0, 0, 240, 240);
+  img.onerror = () => {
+    ctx.fillStyle = '#f5f5f5';
+    ctx.fillRect(0, 0, 240, 240);
+    ctx.fillStyle = '#666';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('QR generation failed', 120, 120);
+  };
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;
+}
+
+function closeSignInQR() {
+  document.getElementById('qrDisplayOverlay').classList.remove('open');
 }
 
 // ─────────────────────────────────────────────
