@@ -6,6 +6,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="OstrichLogin">
+<meta name="theme-color" content="#e8a020">
+<link rel="manifest" href="manifest.json">
 <title>OstrichLogin</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
@@ -2963,6 +2965,12 @@ function closeSignInQR() {
 // ─────────────────────────────────────────────
 //  BOOT
 // ─────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/OstrichLogin/sw.js')
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
 init();
 </script>
 </body>
