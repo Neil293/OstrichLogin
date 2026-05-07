@@ -2,7 +2,7 @@
 
 A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT facility information — sign-in URLs, door/access codes, addresses, and navigation — from any phone or tablet.
 
-**Live app:** `https://neil293.github.io/OstrichLogin/`
+**Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
 
 ---
 
@@ -10,105 +10,109 @@ A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT f
 
 - 🔐 **Secure login** — SHA-256 hashed passwords, session persistence
 - 🏢 **35 IRT sites** pre-loaded — aged care, retirement villages, community facilities
-- 🔑 **Door & access codes** — one-tap copy to clipboard
+- 🔑 **Door & access codes** — one-tap copy to clipboard, structured by location
 - 🔗 **Sign In / Out** — direct link to ComplyMe sign-in for each site
-- 🧭 **GPS navigation** — sorts list by distance from your current location, launches native Maps app
 - 📷 **QR code scanner** — scan ComplyMe QR codes directly into the sign-in URL field
-- ☁️ **Firebase sync** — real-time sync across all devices
-- 💾 **Backup & restore** — export/import JSON backup
-- 👥 **Multi-user** — admin and standard user roles
+- 🧭 **GPS navigation** — sorts list by distance from your current location, launches Google Maps
+- ☁️ **Firebase sync** — syncs across all devices, optimised for free tier (minimal reads/writes)
+- 💾 **Backup & restore** — export/import JSON backup (admin only)
+- 👥 **Multi-user** — admin and user roles with granular per-user permissions
 - 📱 **PWA** — installable on Android and iOS, works offline after first load
+
+---
+
+## User Permissions
+
+Admins can control what each user can do:
+
+| Permission | Description |
+|---|---|
+| Edit Sites | Can edit site details, address, codes |
+| Add Access Codes | Can add or modify access codes |
+| Delete Records | Can delete sites and users |
+| Backup & Restore | Can export and import data |
+| Sign In / Out | Can use the sign-in URL button |
+| Navigate | Can use GPS navigation |
 
 ---
 
 ## Deployment
 
-### First-time setup
+### Prerequisites
+- GitHub account (for hosting)
+- Firebase project (`ostrichlogin`) with Firestore enabled
 
-1. Clone or fork this repo
-2. Open `index.html` and fill in your Firebase credentials:
+### Steps
+
+1. Upload `index.html` to the repo root
+2. Enable GitHub Pages: **Settings → Pages → Deploy from branch → main / root**
+3. App will be live at [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
+
+### Firebase config (already set)
 
 ```javascript
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "complytrack-6ac7e.firebaseapp.com",
-  projectId: "complytrack-6ac7e",
-  storageBucket: "complytrack-6ac7e.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCiICSH279ecX_k3ma-Kw3Xszt8wgUzgmM",
+  authDomain: "ostrichlogin.firebaseapp.com",
+  projectId: "ostrichlogin",
+  storageBucket: "ostrichlogin.firebasestorage.app",
+  messagingSenderId: "1036713713378",
+  appId: "1:1036713713378:web:0138480304436eb67948bb"
 };
 ```
 
-3. Enable GitHub Pages: **Settings → Pages → Deploy from branch → main / root**
-4. App will be live at `https://neil293.github.io/OstrichLogin/`
-
 ### Firestore rules
 
-Add the following rule to your Firebase project to allow app access:
-
 ```
-match /irt_sites/{doc} {
-  allow read, write: if true;
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /ostrich_sites/{doc} {
+      allow read, write: if true;
+    }
+  }
 }
 ```
 
-> **Note:** This app uses the existing `complytrack-6ac7e` Firebase project but writes to a separate Firestore document (`ostrich_sites/main`) — it does not interfere with FieldPass data.
+---
+
+## Default logins
+
+| Username | Password | Role |
+|---|---|---|
+| `neil` | `admin` | Admin |
+| `fmps` | `fmps1510` | User |
+
+**Change passwords after first login** via Settings → Change Password.
 
 ---
 
-## Default login
+## Firebase sync strategy (free tier optimised)
 
-| Username | Password  | Role  |
-|----------|-----------|-------|
-| `neil`   | `admin123` | Admin |
-
-**Change the password immediately** after first login via Settings → Change Password.
-
----
-
-## Adding / managing users
-
-Admins can add users under the **Users** tab. Roles:
-
-- **Admin** — full access: add/edit/delete sites and users
-- **User** — view sites, copy codes, navigate, sign in/out; cannot delete
+| Action | Strategy |
+|---|---|
+| **Read** | Once on login (`getDoc`) — no persistent listener |
+| **Write** | 30-second debounce, skipped if data unchanged |
+| **Manual sync** | Settings → Sync now |
 
 ---
 
 ## Tech stack
 
 | Component | Technology |
-|-----------|-----------|
-| Frontend  | Vanilla JS, HTML, CSS — no frameworks, no build tools |
-| Database  | Firebase Firestore (`complytrack-6ac7e`) |
-| Auth      | Custom SHA-256 via `crypto.subtle` |
-| Maps      | Native OS maps via `geo:` / `maps:` URI scheme |
-| QR scan   | BarcodeDetector API (Android), jsQR fallback |
-| Hosting   | GitHub Pages (static) |
+|---|---|
+| Frontend | Vanilla JS, HTML, CSS — no frameworks, no build tools |
+| Database | Firebase Firestore (`ostrichlogin`) |
+| Auth | Custom SHA-256 via `crypto.subtle` |
+| Maps | Google Maps via universal URL |
+| QR scan | BarcodeDetector API (Android), jsQR fallback |
+| Hosting | GitHub Pages (static) |
 
 ---
 
 ## Camera & GPS requirements
 
-Camera (QR scanning) and GPS (distance sort / navigation) require the app to be served over **HTTPS**. These features will not work when running the file locally (`file://`). GitHub Pages provides HTTPS automatically.
-
----
-
-## Data structure
-
-Sites are stored in `localStorage` under `irt_sites_v1` and synced to Firestore at `ostrich_sites/main`. Each site record:
-
-```javascript
-{
-  id:        1746613200000,   // Date.now()
-  name:      'Tarrawanna Care Centre',
-  address:   '74-80 Caldwell Ave, Tarrawanna NSW 2518',
-  signInUrl: 'https://www.app.complyme.com.au/...',
-  doorCode:  '8152, Basement: 2019, Dementia: 3697',
-  notes:     '',
-  updatedAt: 1746613200000
-}
-```
+Camera (QR scanning) and GPS (distance sort / navigation) require HTTPS. GitHub Pages provides this automatically — these features will not work when running the file locally (`file://`).
 
 ---
 
