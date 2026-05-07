@@ -2145,9 +2145,9 @@ function renderSites() {
             </div>` : `<div style="font-size:12px;color:var(--text3);font-style:italic">No codes added yet</div>`}
           <div class="inline-add-code-form" id="inline-add-${s.id}" style="display:none" onclick="event.stopPropagation()">
             <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
-              <input type="text" class="inline-code-loc" placeholder="Location (optional)" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:7px 10px;outline:none">
-              <input type="text" class="inline-code-val" placeholder="Code *" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none">
-              <button onclick="event.stopPropagation(); saveInlineCode(${s.id})" style="background:var(--accent);color:#0f1117;border:none;border-radius:var(--radius);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+              <input type="text" class="inline-code-loc" placeholder="Location *" oninput="updateInlineSaveBtn(${s.id})" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:7px 10px;outline:none">
+              <input type="text" class="inline-code-val" placeholder="Code *" oninput="updateInlineSaveBtn(${s.id})" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 10px;outline:none">
+              <button id="inline-save-${s.id}" onclick="event.stopPropagation(); saveInlineCode(${s.id})" disabled style="background:var(--border2);color:var(--text3);border:none;border-radius:var(--radius);padding:7px 12px;font-size:13px;font-weight:600;cursor:not-allowed;white-space:nowrap;transition:all 0.15s">Save</button>
               <button onclick="event.stopPropagation(); hideInlineAddCode(${s.id})" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1">×</button>
             </div>
           </div>
@@ -2805,7 +2805,15 @@ function showInlineAddCode(siteId) {
   form.style.display = 'block';
   form.querySelector('.inline-code-loc').value = '';
   form.querySelector('.inline-code-val').value = '';
-  form.querySelector('.inline-code-val').focus();
+  // Reset save button to greyed state
+  const btn = document.getElementById('inline-save-' + siteId);
+  if (btn) {
+    btn.disabled = true;
+    btn.style.background = 'var(--border2)';
+    btn.style.color = 'var(--text3)';
+    btn.style.cursor = 'not-allowed';
+  }
+  form.querySelector('.inline-code-loc').focus();
 }
 
 function hideInlineAddCode(siteId) {
@@ -2813,12 +2821,29 @@ function hideInlineAddCode(siteId) {
   if (form) form.style.display = 'none';
 }
 
+function updateInlineSaveBtn(siteId) {
+  const form = document.getElementById('inline-add-' + siteId);
+  if (!form) return;
+  const loc  = form.querySelector('.inline-code-loc').value.trim();
+  const code = form.querySelector('.inline-code-val').value.trim();
+  const btn  = document.getElementById('inline-save-' + siteId);
+  if (!btn) return;
+  const ready = loc && code;
+  btn.disabled = !ready;
+  btn.style.background  = ready ? 'var(--accent)' : 'var(--border2)';
+  btn.style.color       = ready ? '#0f1117'        : 'var(--text3)';
+  btn.style.cursor      = ready ? 'pointer'        : 'not-allowed';
+}
+
 function saveInlineCode(siteId) {
   const form = document.getElementById('inline-add-' + siteId);
   if (!form) return;
   const location = form.querySelector('.inline-code-loc').value.trim();
   const code     = form.querySelector('.inline-code-val').value.trim();
-  if (!code) { form.querySelector('.inline-code-val').focus(); return; }
+  if (!location) { form.querySelector('.inline-code-loc').style.borderColor='var(--danger)'; form.querySelector('.inline-code-loc').focus(); return; }
+  if (!code)     { form.querySelector('.inline-code-val').style.borderColor='var(--danger)'; form.querySelector('.inline-code-val').focus(); return; }
+  form.querySelector('.inline-code-loc').style.borderColor='';
+  form.querySelector('.inline-code-val').style.borderColor='';
 
   const site = _sites.find(s => s.id === siteId);
   if (!site) return;
