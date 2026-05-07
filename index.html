@@ -1279,7 +1279,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.1.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.2.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1341,7 +1341,7 @@
       </div>
       <div class="settings-section">
         <table class="users-table" id="usersTable">
-          <thead>
+          <thead style="display:none">
             <tr>
               <th>Name</th>
               <th>Username</th>
@@ -1402,15 +1402,10 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.1.0 — Fairy Meadow Plumbing</span></div>
+            <div class="settings-desc"><span class="app-version-label">v2.2.0 — Fairy Meadow Plumbing</span></div>
           </div>
         </div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Live App</div>
-            <div class="settings-desc"><a href="https://neil293.github.io/OstrichLogin/" target="_blank" rel="noopener" style="color:var(--info)">neil293.github.io/OstrichLogin/</a></div>
-          </div>
-        </div>
+
       </div>
     </div>
   </main>
@@ -1649,7 +1644,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -1754,7 +1749,42 @@ function parseDoorCodeString(str) {
 }
 
 function migrateAddresses() {
+  // Rename old site names to match new IRT branding
+  const nameMap = {
+    'Woonona':               'IRT Woonona (Aged Care)',
+    'Marco Polo Woonona':    'IRT Marco Polo',
+    'Braeside Close':        'IRT Braeside',
+    'Tarrawanna Care Centre':'IRT Tarrawanna',
+    'Towradgi':              'IRT Towradgi Park Lodge',
+    'Five Islands Court':    'IRT Five Islands Court',
+    'William Beach Gardens': 'IRT William Beach Gardens',
+    'Henry Brooks':          'Henry Brooks Estate at IRT Kanahooka',
+    'Howard Court':          'Howard Court at IRT Pioneer Place',
+    'Parkside':              'Parkside at IRT Pioneer Place',
+    'Diment Towers':         'IRT Diment',
+    'Thomas Holt Kirrawee':  'IRT Thomas Holt Kirrawee',
+    'Sans Souci':            'IRT Thomas Holt Sans Souci Gardens',
+    'Peakhurst EKC':         'IRT Peakhurst',
+    'Berala':                'IRT Berala',
+    'MacArthur':             'IRT Macarthur',
+    'Greenwell Gardens':     'IRT Greenwell Gardens',
+    'Milton':                'IRT Sarah Claydon Milton',
+    'Culburra':              'IRT Culburra Beach',
+    'St George Basin':       'IRT St Georges Basin',
+    'The Clyde':             'IRT The Clyde',
+    'Dalmeny':               'IRT Dalmeny',
+    'Moruya':                'IRT Moruya',
+    'Kangara':               'IRT Kangara Waters',
+    'Marco Polo Unanderra':  'IRT Marco Polo Unanderra',
+    'McCauley Lodge':        'IRT McCauley Lodge',
+    'Crown Gardens':         'IRT Crown Gardens',
+    'Tarrawanna Village':    'IRT Tarrawanna Gardens',
+  };
+  _sites.forEach(s => {
+    if (nameMap[s.name]) { s.name = nameMap[s.name]; changed = true; }
+  });
   const coordMap = {
+    'IRT Berala':               { _lat: -33.8686, _lng: 151.0257 },
     'Berala':                  { _lat: -33.8686, _lng: 151.0257 },
     'Braeside Close':          { _lat: -34.4089, _lng: 150.8703 },
     'Camellia Lodge (Woonona)':{ _lat: -34.3430, _lng: 150.8996 },
@@ -1853,41 +1883,56 @@ function migrateAddresses() {
 function seedSites() {
   const now = Date.now();
   _sites = [
-    { id: now+1,  name: 'Berala',                   address: '102 Woodburn Rd, Berala NSW 2141',               _lat: -33.8686, _lng: 151.0257, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F5DFC116B48CF597CB34ACE0C3FA5719167A41430A46EB811F450AF4667B6CAF368EB7BF4E7202FEBB06344392F8576CB387D6CD46271F132937C285AD641995', accessCodes: [{"location": "Lift", "code": "1357"}], notes: '', updatedAt: now },
-    { id: now+2,  name: 'Braeside Close',            address: '155-161 Gipps Rd, Keiraville NSW 2500',           _lat: -34.4089, _lng: 150.8703, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C2047A3F9749D56C7425F660685ADBDFCF84CE1CA00F87E6B979B216AC6A6AEB5076726408C74BA4F3E47F2C282BF3E3B17F791E4F37FFC98D44ECA0CE73F022&g=18556', accessCodes: [{"location": "Community room", "code": "1993"}], notes: 'WiFi: brae2500', updatedAt: now },
+    { id: now+1,  name: 'IRT Berala',                   address: '13 St Johns Rd, Berala NSW 2141',               _lat: -33.8686, _lng: 151.0257, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F5DFC116B48CF597CB34ACE0C3FA5719167A41430A46EB811F450AF4667B6CAF368EB7BF4E7202FEBB06344392F8576CB387D6CD46271F132937C285AD641995', accessCodes: [{"location": "Lift", "code": "1357"}], notes: '', updatedAt: now },
+    { id: now+2,  name: 'IRT Braeside',            address: '155-161 Gipps Rd, Gwynneville NSW 2500',           _lat: -34.4089, _lng: 150.8703, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C2047A3F9749D56C7425F660685ADBDFCF84CE1CA00F87E6B979B216AC6A6AEB5076726408C74BA4F3E47F2C282BF3E3B17F791E4F37FFC98D44ECA0CE73F022&g=18556', accessCodes: [{"location": "Community room", "code": "1993"}], notes: 'WiFi: brae2500', updatedAt: now },
     { id: now+3,  name: 'Camellia Lodge (Woonona)', address: 'Popes Rd, Woonona NSW 2517',                      _lat: -34.3430, _lng: 150.8996, signInUrl: '', accessCodes: [{"location": "Arrow (old)", "code": "2468"}, {"location": "Arrow", "code": "1580"}], notes: '', updatedAt: now },
     { id: now+4,  name: 'Central Kitchen',           address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=8F31579C770BA13B72516F5C2FB0A6855D622C5A04D5A5170005891B1AA99F781E704570D6CFA07717FF8D5CBF204804099D883FA1771858F6D1E8C0C5017931', accessCodes: [{"location": "", "code": "1104"}], notes: '', updatedAt: now },
     { id: now+5,  name: 'Crown Gardens',             address: 'Batemans Bay NSW 2536',                           _lat: -35.7076, _lng: 150.1732, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=83060386D29818854D4729C28FA6C5C6A8A7ABF106F54973C517232971F5EC942383B3DD4A9762DECB5901CCBD7E5404740156D73F2FAEDDD923C555884BBB81&g=18557', accessCodes: [{"location": "", "code": "7931"}], notes: '', updatedAt: now },
-    { id: now+6,  name: 'Culburra',                  address: 'Culburra Beach NSW 2540',                         _lat: -34.9311, _lng: 150.7631, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=E116A22D3F898F97EBDE1BD48618121ACFD9175398C3AC2B231819D7DD0FF6EAEC6A0847FCAF6C7B88ABAF49C49BEEAADD77DB76763A2ACE3C09DB6A7A28F896&g=18558', accessCodes: [{"location": "", "code": "2020#"}, {"location": "", "code": "2355#"}], notes: '', updatedAt: now },
-    { id: now+7,  name: 'Dalmeny',                   address: 'Dalmeny NSW 2546',                                _lat: -36.1688, _lng: 150.1180, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=55F3CA89A042FD4770C7B094F2289AD53DB0AA40E08955BA883A7B8797470BE8E1C1143B997A18499D9140E30E6033CB1F7D3625B0CE7CB21D1BAD86A409C734&g=18559', accessCodes: [], notes: '', updatedAt: now },
-    { id: now+8,  name: 'Diment Towers',             address: '39-45 Staff St, Wollongong NSW 2500',             _lat: -34.4248, _lng: 150.8936, signInUrl: '', accessCodes: [{"location": "Front door", "code": "2580*"}], notes: '', updatedAt: now },
-    { id: now+9,  name: 'Five Islands Court',        address: '25 Quarry St, Port Kembla NSW 2505',              _lat: -34.4800, _lng: 150.9040, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=39E3F728B268392EA388E218339B17DB564F4E9F4831EA859279F5087D966A0AC62798EB6C926576832678C24AA12DADFFD0686459B5C9B06B9F3482A73CC315&g=18561', accessCodes: [{"location": "Outside doors", "code": "2505#"}, {"location": "House 3", "code": "*234"}], notes: '', updatedAt: now },
-    { id: now+10, name: 'Greenwell Gardens',         address: '4 Brereton St, Nowra NSW 2541',                   _lat: -34.8786, _lng: 150.5997, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F22B86D835A07ADF61BB2E7EF2BE7EB2C316BF6DA33D6751C493C944B63E8B96C84345C91E36A71F95729DA2AE658775E2786BE07CEFBA093915FF0093BEC0E2&g=18562', accessCodes: [{"location": "", "code": "479e"}], notes: '', updatedAt: now },
-    { id: now+11, name: 'Henry Brooks',              address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F91DBC2E1A0112D3E1816ED0294096AF6A7D6F818113FF4E0482831C4903CD901A8CD4DF2962CB804FEE5F49418ED20B816D570394B38503DC2C35ADDBDF306D&g=18565', accessCodes: [], notes: '', updatedAt: now },
-    { id: now+12, name: 'Howard Court',              address: '1 Ross St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D3BBD4FC38BEB92E0AAF8E6305F0BF108F9FF5A8D136E5E1020C77D3EA7C70CB37C2F9D5D291AD5DD40C2572462745D03544A834F3F84EC8EB0664FA5D733E22', accessCodes: [{"location": "", "code": "#2377"}], notes: '', updatedAt: now },
-    { id: now+13, name: 'Kangara',                   address: '2 Joy Cummings Pl, Belconnen ACT 2617',           _lat: -35.2388, _lng: 149.0610, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=3D4A4DFF44A5AC72DB22643E861214E2E5CC22C9AA193A2E9B8BE8A3040AC5B77C5761D1309EE7DD8D7075033138C52B881A2E6E278096F5D0443E662E806D74&g=18566', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+6,  name: 'IRT Culburra Beach',                  address: '110 The Lake Circuit, Culburra Beach NSW 2540',                         _lat: -34.9311, _lng: 150.7631, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=E116A22D3F898F97EBDE1BD48618121ACFD9175398C3AC2B231819D7DD0FF6EAEC6A0847FCAF6C7B88ABAF49C49BEEAADD77DB76763A2ACE3C09DB6A7A28F896&g=18558', accessCodes: [{"location": "", "code": "2020#"}, {"location": "", "code": "2355#"}], notes: '', updatedAt: now },
+    { id: now+7,  name: 'IRT Dalmeny',                   address: '50 Dalmeny Dr, Dalmeny NSW 2546',                                _lat: -36.1688, _lng: 150.118, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=55F3CA89A042FD4770C7B094F2289AD53DB0AA40E08955BA883A7B8797470BE8E1C1143B997A18499D9140E30E6033CB1F7D3625B0CE7CB21D1BAD86A409C734&g=18559', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+8,  name: 'IRT Diment',             address: '39-45 Staff St, Wollongong NSW 2500',             _lat: -34.4248, _lng: 150.8936, signInUrl: '', accessCodes: [{"location": "Front door", "code": "2580*"}], notes: '', updatedAt: now },
+    { id: now+9,  name: 'IRT Five Islands Court',        address: '179 Five Islands Rd, Cringila NSW 2502',              _lat: -34.48, _lng: 150.904, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=39E3F728B268392EA388E218339B17DB564F4E9F4831EA859279F5087D966A0AC62798EB6C926576832678C24AA12DADFFD0686459B5C9B06B9F3482A73CC315&g=18561', accessCodes: [{"location": "Outside doors", "code": "2505#"}, {"location": "House 3", "code": "*234"}], notes: '', updatedAt: now },
+    { id: now+10, name: 'IRT Greenwell Gardens',         address: '4 Brinawarr St, Bomaderry NSW 2541',                   _lat: -34.863, _lng: 150.594, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F22B86D835A07ADF61BB2E7EF2BE7EB2C316BF6DA33D6751C493C944B63E8B96C84345C91E36A71F95729DA2AE658775E2786BE07CEFBA093915FF0093BEC0E2&g=18562', accessCodes: [{"location": "", "code": "479e"}], notes: '', updatedAt: now },
+    { id: now+11, name: 'Henry Brooks Estate at IRT Kanahooka',              address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F91DBC2E1A0112D3E1816ED0294096AF6A7D6F818113FF4E0482831C4903CD901A8CD4DF2962CB804FEE5F49418ED20B816D570394B38503DC2C35ADDBDF306D&g=18565', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+12, name: 'Howard Court at IRT Pioneer Place',              address: '27A Stewart St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D3BBD4FC38BEB92E0AAF8E6305F0BF108F9FF5A8D136E5E1020C77D3EA7C70CB37C2F9D5D291AD5DD40C2572462745D03544A834F3F84EC8EB0664FA5D733E22', accessCodes: [{"location": "", "code": "#2377"}], notes: '', updatedAt: now },
+    { id: now+13, name: 'IRT Kangara Waters',                   address: '2 Joy Cummings Pl, Belconnen ACT 2617',           _lat: -35.2388, _lng: 149.061, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=3D4A4DFF44A5AC72DB22643E861214E2E5CC22C9AA193A2E9B8BE8A3040AC5B77C5761D1309EE7DD8D7075033138C52B881A2E6E278096F5D0443E662E806D74&g=18566', accessCodes: [], notes: '', updatedAt: now },
     { id: now+14, name: 'Kimera Hostel Lock Box',    address: '',                                                _lat: null,     _lng: null,     signInUrl: '', accessCodes: [{"location": "", "code": "2540"}], notes: '', updatedAt: now },
     { id: now+15, name: 'Lock Box',                  address: '',                                                _lat: null,     _lng: null,     signInUrl: '', accessCodes: [{"location": "", "code": "0318"}], notes: '', updatedAt: now },
-    { id: now+16, name: 'MacArthur',                 address: '1 Hyde Parade, Campbelltown NSW 2560',            _lat: -34.0633, _lng: 150.8144, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=42599AD7DDA567E98A3007F45C6192939E1C541E6B8B845339B368BA8C045FB192131A9B567971EBCA1A43F162F33E61DB0092099CBA0040A6AFCF747F35BA56', accessCodes: [{"location": "Block door", "code": "Key 01653"}, {"location": "Dementia wing", "code": "357e"}, {"location": "RCF kit/Utility", "code": "4806"}], notes: '', updatedAt: now },
+    { id: now+16, name: 'IRT Macarthur',                 address: '1 Hyde Parade, Campbelltown NSW 2560',            _lat: -34.0633, _lng: 150.8144, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=42599AD7DDA567E98A3007F45C6192939E1C541E6B8B845339B368BA8C045FB192131A9B567971EBCA1A43F162F33E61DB0092099CBA0040A6AFCF747F35BA56', accessCodes: [{"location": "Block door", "code": "Key 01653"}, {"location": "Dementia wing", "code": "357e"}, {"location": "RCF kit/Utility", "code": "4806"}], notes: '', updatedAt: now },
     { id: now+17, name: 'Marco Polo Unanderra',      address: 'Unanderra NSW 2526',                              _lat: -34.4947, _lng: 150.8522, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C91BCED484B4E53377D4BF66E7959C8503039D5143A7B11C3F5E52E27096A539CB9FD1D96A860481CFADD16E28F220C1B8D4B578938E65BD9071A8FB877C76AB&g=19971', accessCodes: [{"location": "", "code": "35527"}], notes: '', updatedAt: now },
-    { id: now+18, name: 'Marco Polo Woonona',        address: '11 Watergum Way, Woonona NSW 2517',               _lat: -34.3430, _lng: 150.8996, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=0B3C4E57C574EDF48BBB114F72163076756E808B277023A63F6F8C27ED9082784426564E504B3D7A9CEABD2D5652683B75FC73DA54076BD366BF9B38A9DC7187&g=19970', accessCodes: [{"location": "Front door", "code": "2016"}, {"location": "Fire stairs", "code": "3699"}], notes: '', updatedAt: now },
+    { id: now+18, name: 'IRT Marco Polo',        address: '52 Woonona Parade, Woonona NSW 2517',               _lat: -34.3522, _lng: 150.9021, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=0B3C4E57C574EDF48BBB114F72163076756E808B277023A63F6F8C27ED9082784426564E504B3D7A9CEABD2D5652683B75FC73DA54076BD366BF9B38A9DC7187&g=19970', accessCodes: [{"location": "Front door", "code": "2016"}, {"location": "Fire stairs", "code": "3699"}], notes: '', updatedAt: now },
     { id: now+19, name: 'McCauley Lodge',            address: 'Nowra NSW 2541',                                  _lat: -34.8786, _lng: 150.5997, signInUrl: '', accessCodes: [{"location": "", "code": "2515#"}], notes: '', updatedAt: now },
-    { id: now+20, name: 'Milton',                    address: 'Milton NSW 2538',                                 _lat: -35.3190, _lng: 150.4385, signInUrl: '', accessCodes: [{"location": "", "code": "2006#"}], notes: '', updatedAt: now },
-    { id: now+21, name: 'Moruya',                    address: '35-39 River St, Moruya NSW 2537',                 _lat: -35.9077, _lng: 150.0844, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=760F31FA84B7089B0EBBC6B1EEBA3693F790744B16E65A25283D9ECA6B05905014C0D83680AE54A8D2212B03CF4A2A271A8EDB25BC065F8AA416F881E44F25E3&g=18567', accessCodes: [{"location": "", "code": "0#"}], notes: '', updatedAt: now },
-    { id: now+22, name: 'Parkside',                  address: '1 Ross St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C4431D98F17ABE034FD5255BC30C4A6894EA641DDA659DB2B14CBF974AA12FD60907ADA2AAEAA4523B464161DCF5AFA781A261EE539EF46E19663ED216D64CD9', accessCodes: [{"location": "Front door", "code": "#7275"}, {"location": "Lock box in workshop", "code": "6482"}], notes: '', updatedAt: now },
-    { id: now+23, name: 'Peakhurst EKC',             address: '24 Turpentine Ave, Peakhurst NSW 2210',           _lat: -33.9638, _lng: 151.0561, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=FAF918DE2AB2F7EE166D10A5878863DB12BAB9EF22DB4D614F7B35E7A5C52C11E0586E7C2A42BF3A7F1EB31D9AAAA85CC34C605F0FE7706F2FAD1250A0307E80&g=18569', accessCodes: [{"location": "Gate", "code": "210"}, {"location": "Door", "code": "8963"}], notes: '', updatedAt: now },
-    { id: now+24, name: 'Sans Souci',                address: 'Sans Souci NSW 2219',                             _lat: -33.9967, _lng: 151.1167, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=497EDA70A3C1F1AC1488E13430E027A44837AEE997D4ABF1F05F4D798D389D60412A613BCD0839AC777B47475CC0F9DD0D7283201F83F3FF878BAF3160FF01A1&g=18630', accessCodes: [], notes: '', updatedAt: now },
-    { id: now+25, name: 'St George Basin',           address: '87 Loralyn Ave, St Georges Basin NSW 2540',       _lat: -35.1069, _lng: 150.5783, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=B46312D66602D0B6F0397592F2BA5F1C7DBCEF02A5EAD98632417E6C8D995F4D26E5704673E8C8B3705A707339EFAB423358B361EB98B4E5CA169EE155419D5D&g=18571', accessCodes: [], notes: '', updatedAt: now },
-    { id: now+26, name: 'Tarrawanna Care Centre',    address: '74-80 Caldwell Ave, Tarrawanna NSW 2518',         _lat: -34.3886, _lng: 150.8808, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=578FA9E94E07FBEBED321E59A3BC7D583F99537D5247BE58BFDD80332898287CF762CD31F37EA0FF1F146A527A9A130877E1A4EB87690BB3ED7FD9F5E70F10DE&g=18572', accessCodes: [{"location": "Main", "code": "8152"}, {"location": "Laundry lock box", "code": "0005"}, {"location": "Basement", "code": "2019"}, {"location": "Dementia", "code": "3697"}, {"location": "Lift", "code": "3697"}], notes: '', updatedAt: now },
+    { id: now+20, name: 'IRT Sarah Claydon Milton',                    address: '130 Princes Hwy, Milton NSW 2538',                                 _lat: -35.319, _lng: 150.4385, signInUrl: '', accessCodes: [{"location": "", "code": "2006#"}], notes: '', updatedAt: now },
+    { id: now+21, name: 'IRT Moruya',                    address: '6-10 Evans St, Moruya NSW 2537',                 _lat: -35.9077, _lng: 150.0844, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=760F31FA84B7089B0EBBC6B1EEBA3693F790744B16E65A25283D9ECA6B05905014C0D83680AE54A8D2212B03CF4A2A271A8EDB25BC065F8AA416F881E44F25E3&g=18567', accessCodes: [{"location": "", "code": "0#"}], notes: '', updatedAt: now },
+    { id: now+22, name: 'Parkside at IRT Pioneer Place',                  address: '27B Stewart St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C4431D98F17ABE034FD5255BC30C4A6894EA641DDA659DB2B14CBF974AA12FD60907ADA2AAEAA4523B464161DCF5AFA781A261EE539EF46E19663ED216D64CD9', accessCodes: [{"location": "Front door", "code": "#7275"}, {"location": "Lock box in workshop", "code": "6482"}], notes: '', updatedAt: now },
+    { id: now+23, name: 'IRT Peakhurst',             address: '24 Turpentine Ave, Peakhurst NSW 2210',           _lat: -33.9638, _lng: 151.0561, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=FAF918DE2AB2F7EE166D10A5878863DB12BAB9EF22DB4D614F7B35E7A5C52C11E0586E7C2A42BF3A7F1EB31D9AAAA85CC34C605F0FE7706F2FAD1250A0307E80&g=18569', accessCodes: [{"location": "Gate", "code": "210"}, {"location": "Door", "code": "8963"}], notes: '', updatedAt: now },
+    { id: now+24, name: 'IRT Thomas Holt Sans Souci Gardens',                address: '188 Chuter Ave, Sans Souci NSW 2219',                             _lat: -33.9967, _lng: 151.1167, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=497EDA70A3C1F1AC1488E13430E027A44837AEE997D4ABF1F05F4D798D389D60412A613BCD0839AC777B47475CC0F9DD0D7283201F83F3FF878BAF3160FF01A1&g=18630', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+25, name: 'IRT St Georges Basin',           address: '1 Meriton St, St Georges Basin NSW 2540',       _lat: -35.1069, _lng: 150.5783, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=B46312D66602D0B6F0397592F2BA5F1C7DBCEF02A5EAD98632417E6C8D995F4D26E5704673E8C8B3705A707339EFAB423358B361EB98B4E5CA169EE155419D5D&g=18571', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+26, name: 'IRT Tarrawanna',    address: '74-80 Caldwell Ave, Tarrawanna NSW 2518',         _lat: -34.3886, _lng: 150.8808, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=578FA9E94E07FBEBED321E59A3BC7D583F99537D5247BE58BFDD80332898287CF762CD31F37EA0FF1F146A527A9A130877E1A4EB87690BB3ED7FD9F5E70F10DE&g=18572', accessCodes: [{"location": "Main", "code": "8152"}, {"location": "Laundry lock box", "code": "0005"}, {"location": "Basement", "code": "2019"}, {"location": "Dementia", "code": "3697"}, {"location": "Lift", "code": "3697"}], notes: '', updatedAt: now },
     { id: now+27, name: 'Tarrawanna Depot',          address: 'Tarrawanna NSW 2518',                             _lat: -34.3886, _lng: 150.8808, signInUrl: '', accessCodes: [{"location": "", "code": "6482 arrow"}], notes: '', updatedAt: now },
     { id: now+28, name: 'Tarrawanna Village',        address: 'Tarrawanna NSW 2518',                             _lat: -34.3886, _lng: 150.8808, signInUrl: '', accessCodes: [{"location": "Community room", "code": "2518"}], notes: '', updatedAt: now },
-    { id: now+29, name: 'The Clyde',                 address: 'Batemans Bay NSW 2536',                           _lat: -35.7076, _lng: 150.1732, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=286B8AF939167056A769FE357D1EDFB6E575CADE8FAAD16775AE46881944EACDF770AF42A287F542EBB872FA0F6ECA422288F199D5FE6802ED5D5DB3C1F11AC3&g=18574', accessCodes: [{"location": "", "code": "0809"}], notes: '', updatedAt: now },
-    { id: now+30, name: 'Thomas Holt Kirrawee',      address: 'Kirrawee NSW 2232',                               _lat: -34.0369, _lng: 151.0686, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=CB04883D37BDC13F74F3E183B2F2A75364C5ABA46EBC4CC50F1A241A4C10465CF1FF127035D2B63A790004BEFDFA17C90FDA1B387F492F5EF69D2DC0771E7043', accessCodes: [], notes: '', updatedAt: now },
-    { id: now+31, name: 'Towradgi',                  address: 'Towradgi NSW 2518',                               _lat: -34.3886, _lng: 150.8808, signInUrl: '', accessCodes: [{"location": "Tasman CRT", "code": "3939e"}, {"location": "Max Diment", "code": "3935e"}, {"location": "Common room", "code": "4251"}, {"location": "Nursing home door", "code": "1975e"}], notes: '', updatedAt: now },
+    { id: now+29, name: 'IRT The Clyde',                 address: '3 Beach Rd, Batemans Bay NSW 2536',                           _lat: -35.7076, _lng: 150.1732, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=286B8AF939167056A769FE357D1EDFB6E575CADE8FAAD16775AE46881944EACDF770AF42A287F542EBB872FA0F6ECA422288F199D5FE6802ED5D5DB3C1F11AC3&g=18574', accessCodes: [{"location": "", "code": "0809"}], notes: '', updatedAt: now },
+    { id: now+30, name: 'IRT Thomas Holt Kirrawee',      address: '1-25 Acacia Rd, Kirrawee NSW 2232',                               _lat: -34.0369, _lng: 151.0686, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=CB04883D37BDC13F74F3E183B2F2A75364C5ABA46EBC4CC50F1A241A4C10465CF1FF127035D2B63A790004BEFDFA17C90FDA1B387F492F5EF69D2DC0771E7043', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+31, name: 'IRT Towradgi Park Lodge',                  address: '43-47 Towradgi Rd, Towradgi NSW 2518',                               _lat: -34.383, _lng: 150.887, signInUrl: '', accessCodes: [{"location": "Tasman CRT", "code": "3939e"}, {"location": "Max Diment", "code": "3935e"}, {"location": "Common room", "code": "4251"}, {"location": "Nursing home door", "code": "1975e"}], notes: '', updatedAt: now },
     { id: now+32, name: 'UC Unanderra N/H',          address: 'Unanderra NSW 2526',                              _lat: -34.4947, _lng: 150.8522, signInUrl: '', accessCodes: [{"location": "Rear door", "code": "4223e"}, {"location": "Lift", "code": "1234"}, {"location": "Front door", "code": "1524#"}, {"location": "Utility rooms", "code": "1234"}, {"location": "Dementia wing", "code": "1524#"}], notes: '', updatedAt: now },
-    { id: now+33, name: 'William Beach Gardens',     address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=46700196231D026EA97A1E9B7212648134B4B65C55C88E49877504EE360F3C77AF317E9841C548BCBB91EF4C04807996AC41FEDE1380B55437FA0FB16F81BF58', accessCodes: [{"location": "Flinders", "code": "2530"}, {"location": "", "code": "57042#"}, {"location": "Accuna", "code": "3697"}], notes: '', updatedAt: now },
+    { id: now+33, name: 'IRT William Beach Gardens',     address: '1-5 The Avenue, Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=46700196231D026EA97A1E9B7212648134B4B65C55C88E49877504EE360F3C77AF317E9841C548BCBB91EF4C04807996AC41FEDE1380B55437FA0FB16F81BF58', accessCodes: [{"location": "Flinders", "code": "2530"}, {"location": "", "code": "57042#"}, {"location": "Accuna", "code": "3697"}], notes: '', updatedAt: now },
     { id: now+34, name: 'Woolwich',                  address: 'Woolwich NSW 2110',                               _lat: -33.8438, _lng: 151.1688, signInUrl: '', accessCodes: [{"location": "", "code": "2110"}], notes: '', updatedAt: now },
-    { id: now+35, name: 'Woonona',                   address: 'Popes Rd, Woonona NSW 2517',                      _lat: -34.3430, _lng: 150.8996, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D747F07DDA7ECA76A645DA3AF11086764789197774C179F95A68BA702E14581548773A03B6B3E1151953455B4156343C2319B13C46B1FD2C93533115D9380A9D', accessCodes: [{"location": "Flametree", "code": "2540"}, {"location": "Church", "code": "1973"}], notes: '', updatedAt: now },
+    { id: now+35, name: 'IRT Woonona (Aged Care)',                   address: 'Popes Rd, Woonona NSW 2517',                      _lat: -34.343, _lng: 150.8996, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D747F07DDA7ECA76A645DA3AF11086764789197774C179F95A68BA702E14581548773A03B6B3E1151953455B4156343C2319B13C46B1FD2C93533115D9380A9D', accessCodes: [{"location": "Flametree", "code": "2540"}, {"location": "Church", "code": "1973"}], notes: '', updatedAt: now },
+    { id: now+36, name: 'IRT Woonona (Retirement Village)',          address: '4 Popes Rd, Woonona NSW 2517',                       _lat: -34.3430, _lng: 150.8996, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+37, name: 'IRT Seaview',                               address: '49-53 Park Rd, Woonona NSW 2517',                    _lat: -34.3460, _lng: 150.9010, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+38, name: 'IRT Edwina',                                address: '4-8 Underwood St, Corrimal NSW 2518',                _lat: -34.3780, _lng: 150.8920, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+39, name: 'IRT Birch Villa',                           address: '47 Underwood St, Corrimal NSW 2518',                 _lat: -34.3780, _lng: 150.8920, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+40, name: 'IRT Tarrawanna Gardens',                    address: '2 Foothills Rd, Tarrawanna NSW 2518',                _lat: -34.3886, _lng: 150.8808, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+41, name: 'IRT Kanahooka',                             address: '260 Kanahooka Rd, Kanahooka NSW 2530',               _lat: -34.5197, _lng: 150.8386, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+42, name: 'Jasmine Grove at IRT Kanahooka',            address: 'Kanahooka NSW 2530',                                 _lat: -34.5197, _lng: 150.8386, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+43, name: 'IRT Sarah Claydon (North Wollongong)',      address: '130-154 Loftus St, North Wollongong NSW 2500',       _lat: -34.4150, _lng: 150.9040, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+44, name: 'IRT Harbourside',                           address: '6 Terralong St, Kiama NSW 2533',                    _lat: -34.6710, _lng: 150.8550, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+45, name: 'IRT Thomas Holt Stafford Court',            address: '492-496 Box Rd, Jannali NSW 2226',                  _lat: -34.0180, _lng: 151.0660, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+46, name: 'IRT Thomas Holt Kilpatrick Court',          address: '539 The Boulevarde, Sutherland NSW 2232',            _lat: -34.0300, _lng: 151.0570, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+47, name: 'IRT Auburn',                                address: '1-3 Harrow Rd, Auburn NSW 2144',                    _lat: -33.8490, _lng: 151.0340, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+48, name: 'IRT Nowra',                                 address: '42-60 Worrigee St, Nowra NSW 2541',                  _lat: -34.8786, _lng: 150.5997, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+49, name: 'IRT Shoalhaven',                            address: '18 Brinawarr St, Bomaderry NSW 2541',                _lat: -34.8630, _lng: 150.5940, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
+    { id: now+50, name: 'Milton Faire',                              address: 'Princes Hwy, Milton NSW 2538',                      _lat: -35.3190, _lng: 150.4385, signInUrl: '', accessCodes: [], notes: '', updatedAt: now },
   ];
   saveLocal();
 }
@@ -2332,21 +2377,24 @@ function renderUsers() {
       .filter(([,v]) => v)
       .map(([k]) => ({editSites:'Edit Sites', accessCodes:'Access Codes', deleteRecords:'Delete', backupRestore:'Backup', signIn:'Sign In', navigate:'Navigate'})[k])
       .filter(Boolean)
-      .map(label => `<span style="font-size:10px;font-family:var(--mono);background:rgba(68,144,224,0.1);color:var(--info);padding:1px 6px;border-radius:3px;margin-right:3px">${label}</span>`)
+      .map(label => `<span style="font-size:10px;font-family:var(--mono);background:rgba(68,144,224,0.1);color:var(--info);padding:2px 6px;border-radius:3px;margin-right:3px;margin-bottom:3px;display:inline-block">${label}</span>`)
       .join('') : '<span style="font-size:10px;font-family:var(--mono);color:var(--accent)">Full access</span>';
+    const canDelete = u.username !== _session.username && (requireAdmin() || hasPermission('deleteRecords'));
     return `<tr>
-      <td>
-        <div>${esc(u.name)}</div>
-        <div style="margin-top:4px">${permTags}</div>
-      </td>
-      <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${esc(u.username)}</td>
-      <td><span class="role-badge ${u.role}">${u.role}</span></td>
-      <td>
-        <div style="display:flex;gap:6px;justify-content:flex-end">
-          <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.id})">Edit</button>
-          ${(u.username !== _session.username && (requireAdmin() || hasPermission('deleteRecords')))
-            ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✕</button>`
-            : ''}
+      <td colspan="3" style="padding:0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+              <span style="font-size:14px;font-weight:600;color:var(--text)">${esc(u.name)}</span>
+              <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(u.username)}</span>
+              <span class="role-badge ${u.role}">${u.role}</span>
+            </div>
+            <div style="flex-wrap:wrap;display:flex">${permTags}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;padding-top:2px">
+            <button class="btn btn-ghost btn-sm" onclick="openUserModal(${u.id})">Edit</button>
+            ${canDelete ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✕</button>` : ''}
+          </div>
         </div>
       </td>
     </tr>`;
@@ -2357,9 +2405,10 @@ function renderUsers() {
 //  USERS — ADD / EDIT
 // ─────────────────────────────────────────────
 function openUserModal(id = null) {
-  const u = id ? _users.find(x => x.id === id) : null;
+  const numId = id ? Number(id) : null;
+  const u = numId ? _users.find(x => x.id === numId) : null;
   document.getElementById('userModalTitle').textContent = u ? 'Edit User' : 'Add User';
-  document.getElementById('userId').value    = id || '';
+  document.getElementById('userId').value    = numId || '';
   document.getElementById('userName').value  = u ? u.name     : '';
   document.getElementById('userUsername').value = u ? u.username : '';
   document.getElementById('userPassword').value = '';
@@ -2369,7 +2418,7 @@ function openUserModal(id = null) {
 
   // If editing, password is optional
   document.getElementById('passLabel').textContent = u ? 'New Password (leave blank to keep)' : 'Password *';
-  document.getElementById('passConfirmGroup').style.display = u ? '' : '';
+  document.getElementById('passConfirmGroup').style.display = '';
 
   // Permissions — hidden for admin (admins always have full access)
   const role = u ? u.role : 'user';
