@@ -1676,6 +1676,8 @@ function bootApp() {
   renderSites();
   renderUsers();
   initFirebase();
+  // Auto-trigger GPS sort by default
+  setTimeout(() => { if (!_gpsActive) toggleGpsSort(); }, 400);
 }
 
 // ─────────────────────────────────────────────
@@ -1785,10 +1787,10 @@ function renderSites() {
          </a>`
       : '';
     const navBtn = s.address
-      ? `<button class="btn btn-nav" onclick="event.stopPropagation(); openMaps(${JSON.stringify(s.address)}, ${JSON.stringify(s.name)})">
+      ? `<a class="btn btn-nav" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address || s.name)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
            Navigate
-         </button>`
+         </a>`
       : '';
     const editBtn = `<button class="btn btn-edit-site" onclick="event.stopPropagation(); openEditPage(${s.id})">
            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1902,16 +1904,10 @@ function saveEditPage() {
 // ─────────────────────────────────────────────
 function openMaps(address, name) {
   const query = encodeURIComponent(address || name);
-  // On iOS/Android opens native Maps; on desktop opens Google Maps in browser
-  const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isAndroid = /Android/.test(navigator.userAgent);
-  if (isIOS) {
-    window.open('maps://?q=' + query, '_blank');
-  } else if (isAndroid) {
-    window.open('geo:0,0?q=' + query, '_blank');
-  } else {
-    window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
-  }
+  // Use Google Maps universal URL — works on Android (opens Maps app) and desktop
+  // On iOS, Google Maps URL also works or can be changed to maps:// if preferred
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + query;
+  window.location.href = url;
 }
 
 
