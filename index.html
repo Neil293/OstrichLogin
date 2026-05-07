@@ -1350,6 +1350,42 @@ async function seedDefaultAdmin() {
 
 // One-time migration: patch addresses into existing records that have none
 function migrateAddresses() {
+  const coordMap = {
+    'Berala':                  { _lat: -33.8686, _lng: 151.0257 },
+    'Braeside Close':          { _lat: -34.4089, _lng: 150.8703 },
+    'Camellia Lodge (Woonona)':{ _lat: -34.3430, _lng: 150.8996 },
+    'Central Kitchen':         { _lat: -34.5197, _lng: 150.8386 },
+    'Crown Gardens':           { _lat: -35.7076, _lng: 150.1732 },
+    'Culburra':                { _lat: -34.9311, _lng: 150.7631 },
+    'Dalmeny':                 { _lat: -36.1688, _lng: 150.1180 },
+    'Diment Towers':           { _lat: -34.4248, _lng: 150.8936 },
+    'Five Islands Court':      { _lat: -34.4800, _lng: 150.9040 },
+    'Greenwell Gardens':       { _lat: -34.8786, _lng: 150.5997 },
+    'Henry Brooks':            { _lat: -34.5197, _lng: 150.8386 },
+    'Howard Court':            { _lat: -34.4248, _lng: 150.8936 },
+    'Kangara':                 { _lat: -35.2388, _lng: 149.0610 },
+    'MacArthur':               { _lat: -34.0633, _lng: 150.8144 },
+    'Marco Polo Unanderra':    { _lat: -34.4947, _lng: 150.8522 },
+    'Marco Polo Woonona':      { _lat: -34.3430, _lng: 150.8996 },
+    'Mario Polo Woonona':      { _lat: -34.3430, _lng: 150.8996 },
+    'McCauley Lodge':          { _lat: -34.8786, _lng: 150.5997 },
+    'Milton':                  { _lat: -35.3190, _lng: 150.4385 },
+    'Moruya':                  { _lat: -35.9077, _lng: 150.0844 },
+    'Parkside':                { _lat: -34.4248, _lng: 150.8936 },
+    'Peakhurst EKC':           { _lat: -33.9638, _lng: 151.0561 },
+    'Sans Souci':              { _lat: -33.9967, _lng: 151.1167 },
+    'St George Basin':         { _lat: -35.1069, _lng: 150.5783 },
+    'Tarrawanna Care Centre':  { _lat: -34.3886, _lng: 150.8808 },
+    'Tarrawanna Depot':        { _lat: -34.3886, _lng: 150.8808 },
+    'Tarrawanna Village':      { _lat: -34.3886, _lng: 150.8808 },
+    'The Clyde':               { _lat: -35.7076, _lng: 150.1732 },
+    'Thomas Holt Kirrawee':    { _lat: -34.0369, _lng: 151.0686 },
+    'Towradgi':                { _lat: -34.3886, _lng: 150.8808 },
+    'UC Unanderra N/H':        { _lat: -34.4947, _lng: 150.8522 },
+    'William Beach Gardens':   { _lat: -34.5197, _lng: 150.8386 },
+    'Woolwich':                { _lat: -33.8438, _lng: 151.1688 },
+    'Woonona':                 { _lat: -34.3430, _lng: 150.8996 },
+  };
   const addressMap = {
     'Berala':                  '102 Woodburn Rd, Berala NSW 2141',
     'Braeside Close':          '155-161 Gipps Rd, Keiraville NSW 2500',
@@ -1392,6 +1428,11 @@ function migrateAddresses() {
       s.address = addressMap[s.name];
       changed = true;
     }
+    if ((s._lat === undefined || s._lat === null) && coordMap[s.name]) {
+      s._lat = coordMap[s.name]._lat;
+      s._lng = coordMap[s.name]._lng;
+      changed = true;
+    }
   });
   if (changed) {
     saveLocal();
@@ -1402,41 +1443,41 @@ function migrateAddresses() {
 function seedSites() {
   const now = Date.now();
   _sites = [
-    { id: now+1,  name: 'Berala', address: '102 Woodburn Rd, Berala NSW 2141',               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F5DFC116B48CF597CB34ACE0C3FA5719167A41430A46EB811F450AF4667B6CAF368EB7BF4E7202FEBB06344392F8576CB387D6CD46271F132937C285AD641995', doorCode: 'Lift: 1357', notes: '', updatedAt: now },
-    { id: now+2,  name: 'Braeside Close', address: '155-161 Gipps Rd, Keiraville NSW 2500',           signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C2047A3F9749D56C7425F660685ADBDFCF84CE1CA00F87E6B979B216AC6A6AEB5076726408C74BA4F3E47F2C282BF3E3B17F791E4F37FFC98D44ECA0CE73F022&g=18556', doorCode: 'Community room: 1993', notes: 'WiFi: brae2500', updatedAt: now },
-    { id: now+3,  name: 'Camellia Lodge (Woonona)', address: 'Popes Rd, Woonona NSW 2517',                     signInUrl: '', doorCode: '2468 arrow (old), 1580 arrow', notes: '', updatedAt: now },
-    { id: now+4,  name: 'Central Kitchen', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=8F31579C770BA13B72516F5C2FB0A6855D622C5A04D5A5170005891B1AA99F781E704570D6CFA07717FF8D5CBF204804099D883FA1771858F6D1E8C0C5017931', doorCode: '1104', notes: '', updatedAt: now },
-    { id: now+5,  name: 'Crown Gardens', address: 'Batemans Bay NSW 2536',                          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=83060386D29818854D4729C28FA6C5C6A8A7ABF106F54973C517232971F5EC942383B3DD4A9762DECB5901CCBD7E5404740156D73F2FAEDDD923C555884BBB81&g=18557', doorCode: '7931', notes: '', updatedAt: now },
-    { id: now+6,  name: 'Culburra', address: 'Culburra Beach NSW 2540',                        signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=E116A22D3F898F97EBDE1BD48618121ACFD9175398C3AC2B231819D7DD0FF6EAEC6A0847FCAF6C7B88ABAF49C49BEEAADD77DB76763A2ACE3C09DB6A7A28F896&g=18558', doorCode: '2020# / 2355#', notes: '', updatedAt: now },
-    { id: now+7,  name: 'Dalmeny', address: 'Dalmeny NSW 2546',                               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=55F3CA89A042FD4770C7B094F2289AD53DB0AA40E08955BA883A7B8797470BE8E1C1143B997A18499D9140E30E6033CB1F7D3625B0CE7CB21D1BAD86A409C734&g=18559', doorCode: '', notes: '', updatedAt: now },
-    { id: now+8,  name: 'Diment Towers', address: '39-45 Staff St, Wollongong NSW 2500',            signInUrl: '', doorCode: 'Front door: 2580*', notes: '', updatedAt: now },
-    { id: now+9,  name: 'Five Islands Court', address: '25 Quarry St, Port Kembla NSW 2505',            signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=39E3F728B268392EA388E218339B17DB564F4E9F4831EA859279F5087D966A0AC62798EB6C926576832678C24AA12DADFFD0686459B5C9B06B9F3482A73CC315&g=18561', doorCode: 'Outside doors: 2505#, House 3: *234', notes: '', updatedAt: now },
-    { id: now+10, name: 'Greenwell Gardens', address: '4 Brereton St, Nowra NSW 2541',                  signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F22B86D835A07ADF61BB2E7EF2BE7EB2C316BF6DA33D6751C493C944B63E8B96C84345C91E36A71F95729DA2AE658775E2786BE07CEFBA093915FF0093BEC0E2&g=18562', doorCode: '479e', notes: '', updatedAt: now },
-    { id: now+11, name: 'Henry Brooks', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F91DBC2E1A0112D3E1816ED0294096AF6A7D6F818113FF4E0482831C4903CD901A8CD4DF2962CB804FEE5F49418ED20B816D570394B38503DC2C35ADDBDF306D&g=18565', doorCode: '', notes: '', updatedAt: now },
-    { id: now+12, name: 'Howard Court', address: '1 Ross St, Wollongong NSW 2500',                 signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D3BBD4FC38BEB92E0AAF8E6305F0BF108F9FF5A8D136E5E1020C77D3EA7C70CB37C2F9D5D291AD5DD40C2572462745D03544A834F3F84EC8EB0664FA5D733E22', doorCode: '#2377', notes: '', updatedAt: now },
-    { id: now+13, name: 'Kangara', address: '2 Joy Cummings Pl, Belconnen ACT 2617',          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=3D4A4DFF44A5AC72DB22643E861214E2E5CC22C9AA193A2E9B8BE8A3040AC5B77C5761D1309EE7DD8D7075033138C52B881A2E6E278096F5D0443E662E806D74&g=18566', doorCode: '', notes: '', updatedAt: now },
-    { id: now+14, name: 'Kimera Hostel Lock Box', address: '',                                               signInUrl: '', doorCode: '2540', notes: '', updatedAt: now },
-    { id: now+15, name: 'Lock Box', address: '',                                               signInUrl: '', doorCode: '0318', notes: '', updatedAt: now },
-    { id: now+16, name: 'MacArthur', address: '1 Hyde Parade, Campbelltown NSW 2560',          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=42599AD7DDA567E98A3007F45C6192939E1C541E6B8B845339B368BA8C045FB192131A9B567971EBCA1A43F162F33E61DB0092099CBA0040A6AFCF747F35BA56', doorCode: 'Block door: Key 01653, Dimenta wing: 357e, RCF kit/Utility: 4806', notes: '', updatedAt: now },
-    { id: now+17, name: 'Marco Polo Unanderra', address: 'Unanderra NSW 2526',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C91BCED484B4E53377D4BF66E7959C8503039D5143A7B11C3F5E52E27096A539CB9FD1D96A860481CFADD16E28F220C1B8D4B578938E65BD9071A8FB877C76AB&g=19971', doorCode: '35527', notes: '', updatedAt: now },
-    { id: now+18, name: 'Marco Polo Woonona', address: '11 Watergum Way, Woonona NSW 2517',             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=0B3C4E57C574EDF48BBB114F72163076756E808B277023A63F6F8C27ED9082784426564E504B3D7A9CEABD2D5652683B75FC73DA54076BD366BF9B38A9DC7187&g=19970', doorCode: 'Front door: 2016, Fire stairs: 3699', notes: '', updatedAt: now },
-    { id: now+19, name: 'McCauley Lodge', address: 'Nowra NSW 2541',                                 signInUrl: '', doorCode: '2515#', notes: '', updatedAt: now },
-    { id: now+20, name: 'Milton', address: 'Milton NSW 2538',                                signInUrl: '', doorCode: '2006#', notes: '', updatedAt: now },
-    { id: now+21, name: 'Moruya', address: '35-39 River St, Moruya NSW 2537',               signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=760F31FA84B7089B0EBBC6B1EEBA3693F790744B16E65A25283D9ECA6B05905014C0D83680AE54A8D2212B03CF4A2A271A8EDB25BC065F8AA416F881E44F25E3&g=18567', doorCode: '0#', notes: '', updatedAt: now },
-    { id: now+22, name: 'Parkside', address: '1 Ross St, Wollongong NSW 2500',                 signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C4431D98F17ABE034FD5255BC30C4A6894EA641DDA659DB2B14CBF974AA12FD60907ADA2AAEAA4523B464161DCF5AFA781A261EE539EF46E19663ED216D64CD9', doorCode: 'Front door: #7275, Lock box in workshop: 6482', notes: '', updatedAt: now },
-    { id: now+23, name: 'Peakhurst EKC', address: '24 Turpentine Ave, Peakhurst NSW 2210',         signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=FAF918DE2AB2F7EE166D10A5878863DB12BAB9EF22DB4D614F7B35E7A5C52C11E0586E7C2A42BF3A7F1EB31D9AAAA85CC34C605F0FE7706F2FAD1250A0307E80&g=18569', doorCode: 'Gate: 210, Door: 8963', notes: '', updatedAt: now },
-    { id: now+24, name: 'Sans Souci', address: 'Sans Souci NSW 2219',                            signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=497EDA70A3C1F1AC1488E13430E027A44837AEE997D4ABF1F05F4D798D389D60412A613BCD0839AC777B47475CC0F9DD0D7283201F83F3FF878BAF3160FF01A1&g=18630', doorCode: '', notes: '', updatedAt: now },
-    { id: now+25, name: 'St George Basin', address: '87 Loralyn Ave, St Georges Basin NSW 2540',     signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=B46312D66602D0B6F0397592F2BA5F1C7DBCEF02A5EAD98632417E6C8D995F4D26E5704673E8C8B3705A707339EFAB423358B361EB98B4E5CA169EE155419D5D&g=18571', doorCode: '', notes: '', updatedAt: now },
-    { id: now+26, name: 'Tarrawanna Care Centre', address: '74-80 Caldwell Ave, Tarrawanna NSW 2518',       signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=578FA9E94E07FBEBED321E59A3BC7D583F99537D5247BE58BFDD80332898287CF762CD31F37EA0FF1F146A527A9A130877E1A4EB87690BB3ED7FD9F5E70F10DE&g=18572', doorCode: '8152↩, Laundry lock box: 0005, Basement: 2019, Dementia: 3697, Lift: 3697', notes: '', updatedAt: now },
-    { id: now+27, name: 'Tarrawanna Depot', address: 'Tarrawanna NSW 2518',                            signInUrl: '', doorCode: '6482 arrow', notes: '', updatedAt: now },
-    { id: now+28, name: 'Tarrawanna Village', address: 'Tarrawanna NSW 2518',                            signInUrl: '', doorCode: 'Community room: 2518', notes: '', updatedAt: now },
-    { id: now+29, name: 'The Clyde', address: 'Batemans Bay NSW 2536',                          signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=286B8AF939167056A769FE357D1EDFB6E575CADE8FAAD16775AE46881944EACDF770AF42A287F542EBB872FA0F6ECA422288F199D5FE6802ED5D5DB3C1F11AC3&g=18574', doorCode: '0809', notes: '', updatedAt: now },
-    { id: now+30, name: 'Thomas Holt Kirrawee', address: 'Kirrawee NSW 2232',                              signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=CB04883D37BDC13F74F3E183B2F2A75364C5ABA46EBC4CC50F1A241A4C10465CF1FF127035D2B63A790004BEFDFA17C90FDA1B387F492F5EF69D2DC0771E7043', doorCode: '', notes: '', updatedAt: now },
-    { id: now+31, name: 'Towradgi', address: 'Towradgi NSW 2518',                              signInUrl: '', doorCode: 'Tasman CRT: 3939e, Max Diment: 3935e, Common room: 4251, Nursing home door: 1975e', notes: '', updatedAt: now },
-    { id: now+32, name: 'UC Unanderra N/H', address: 'Unanderra NSW 2526',                             signInUrl: '', doorCode: 'Rear door: 4223e, Lift: 1234, Front door: 1524#, Utility rooms: 1234, Dementia wing: 1524#', notes: '', updatedAt: now },
-    { id: now+33, name: 'William Beach Gardens', address: 'Kanahooka NSW 2530',                             signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=46700196231D026EA97A1E9B7212648134B4B65C55C88E49877504EE360F3C77AF317E9841C548BCBB91EF4C04807996AC41FEDE1380B55437FA0FB16F81BF58', doorCode: 'Flinders: 2530, 57042#, Accuna: 3697', notes: '', updatedAt: now },
-    { id: now+34, name: 'Woolwich', address: 'Woolwich NSW 2110',                              signInUrl: '', doorCode: '2110', notes: '', updatedAt: now },
-    { id: now+35, name: 'Woonona', address: 'Popes Rd, Woonona NSW 2517',                    signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D747F07DDA7ECA76A645DA3AF11086764789197774C179F95A68BA702E14581548773A03B6B3E1151953455B4156343C2319B13C46B1FD2C93533115D9380A9D', doorCode: 'Flametree: 2540, Church: 1973', notes: '', updatedAt: now },
+    { id: now+1,  name: 'Berala',                   address: '102 Woodburn Rd, Berala NSW 2141',               _lat: -33.8686, _lng: 151.0257, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F5DFC116B48CF597CB34ACE0C3FA5719167A41430A46EB811F450AF4667B6CAF368EB7BF4E7202FEBB06344392F8576CB387D6CD46271F132937C285AD641995', doorCode: 'Lift: 1357', notes: '', updatedAt: now },
+    { id: now+2,  name: 'Braeside Close',            address: '155-161 Gipps Rd, Keiraville NSW 2500',           _lat: -34.4089, _lng: 150.8703, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C2047A3F9749D56C7425F660685ADBDFCF84CE1CA00F87E6B979B216AC6A6AEB5076726408C74BA4F3E47F2C282BF3E3B17F791E4F37FFC98D44ECA0CE73F022&g=18556', doorCode: 'Community room: 1993', notes: 'WiFi: brae2500', updatedAt: now },
+    { id: now+3,  name: 'Camellia Lodge (Woonona)', address: 'Popes Rd, Woonona NSW 2517',                      _lat: -34.3430, _lng: 150.8996, signInUrl: '', doorCode: '2468 arrow (old), 1580 arrow', notes: '', updatedAt: now },
+    { id: now+4,  name: 'Central Kitchen',           address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=8F31579C770BA13B72516F5C2FB0A6855D622C5A04D5A5170005891B1AA99F781E704570D6CFA07717FF8D5CBF204804099D883FA1771858F6D1E8C0C5017931', doorCode: '1104', notes: '', updatedAt: now },
+    { id: now+5,  name: 'Crown Gardens',             address: 'Batemans Bay NSW 2536',                           _lat: -35.7076, _lng: 150.1732, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=83060386D29818854D4729C28FA6C5C6A8A7ABF106F54973C517232971F5EC942383B3DD4A9762DECB5901CCBD7E5404740156D73F2FAEDDD923C555884BBB81&g=18557', doorCode: '7931', notes: '', updatedAt: now },
+    { id: now+6,  name: 'Culburra',                  address: 'Culburra Beach NSW 2540',                         _lat: -34.9311, _lng: 150.7631, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=E116A22D3F898F97EBDE1BD48618121ACFD9175398C3AC2B231819D7DD0FF6EAEC6A0847FCAF6C7B88ABAF49C49BEEAADD77DB76763A2ACE3C09DB6A7A28F896&g=18558', doorCode: '2020# / 2355#', notes: '', updatedAt: now },
+    { id: now+7,  name: 'Dalmeny',                   address: 'Dalmeny NSW 2546',                                _lat: -36.1688, _lng: 150.1180, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=55F3CA89A042FD4770C7B094F2289AD53DB0AA40E08955BA883A7B8797470BE8E1C1143B997A18499D9140E30E6033CB1F7D3625B0CE7CB21D1BAD86A409C734&g=18559', doorCode: '', notes: '', updatedAt: now },
+    { id: now+8,  name: 'Diment Towers',             address: '39-45 Staff St, Wollongong NSW 2500',             _lat: -34.4248, _lng: 150.8936, signInUrl: '', doorCode: 'Front door: 2580*', notes: '', updatedAt: now },
+    { id: now+9,  name: 'Five Islands Court',        address: '25 Quarry St, Port Kembla NSW 2505',              _lat: -34.4800, _lng: 150.9040, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=39E3F728B268392EA388E218339B17DB564F4E9F4831EA859279F5087D966A0AC62798EB6C926576832678C24AA12DADFFD0686459B5C9B06B9F3482A73CC315&g=18561', doorCode: 'Outside doors: 2505#, House 3: *234', notes: '', updatedAt: now },
+    { id: now+10, name: 'Greenwell Gardens',         address: '4 Brereton St, Nowra NSW 2541',                   _lat: -34.8786, _lng: 150.5997, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F22B86D835A07ADF61BB2E7EF2BE7EB2C316BF6DA33D6751C493C944B63E8B96C84345C91E36A71F95729DA2AE658775E2786BE07CEFBA093915FF0093BEC0E2&g=18562', doorCode: '479e', notes: '', updatedAt: now },
+    { id: now+11, name: 'Henry Brooks',              address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=F91DBC2E1A0112D3E1816ED0294096AF6A7D6F818113FF4E0482831C4903CD901A8CD4DF2962CB804FEE5F49418ED20B816D570394B38503DC2C35ADDBDF306D&g=18565', doorCode: '', notes: '', updatedAt: now },
+    { id: now+12, name: 'Howard Court',              address: '1 Ross St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D3BBD4FC38BEB92E0AAF8E6305F0BF108F9FF5A8D136E5E1020C77D3EA7C70CB37C2F9D5D291AD5DD40C2572462745D03544A834F3F84EC8EB0664FA5D733E22', doorCode: '#2377', notes: '', updatedAt: now },
+    { id: now+13, name: 'Kangara',                   address: '2 Joy Cummings Pl, Belconnen ACT 2617',           _lat: -35.2388, _lng: 149.0610, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=3D4A4DFF44A5AC72DB22643E861214E2E5CC22C9AA193A2E9B8BE8A3040AC5B77C5761D1309EE7DD8D7075033138C52B881A2E6E278096F5D0443E662E806D74&g=18566', doorCode: '', notes: '', updatedAt: now },
+    { id: now+14, name: 'Kimera Hostel Lock Box',    address: '',                                                _lat: null,     _lng: null,     signInUrl: '', doorCode: '2540', notes: '', updatedAt: now },
+    { id: now+15, name: 'Lock Box',                  address: '',                                                _lat: null,     _lng: null,     signInUrl: '', doorCode: '0318', notes: '', updatedAt: now },
+    { id: now+16, name: 'MacArthur',                 address: '1 Hyde Parade, Campbelltown NSW 2560',            _lat: -34.0633, _lng: 150.8144, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=42599AD7DDA567E98A3007F45C6192939E1C541E6B8B845339B368BA8C045FB192131A9B567971EBCA1A43F162F33E61DB0092099CBA0040A6AFCF747F35BA56', doorCode: 'Block door: Key 01653, Dimenta wing: 357e, RCF kit/Utility: 4806', notes: '', updatedAt: now },
+    { id: now+17, name: 'Marco Polo Unanderra',      address: 'Unanderra NSW 2526',                              _lat: -34.4947, _lng: 150.8522, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C91BCED484B4E53377D4BF66E7959C8503039D5143A7B11C3F5E52E27096A539CB9FD1D96A860481CFADD16E28F220C1B8D4B578938E65BD9071A8FB877C76AB&g=19971', doorCode: '35527', notes: '', updatedAt: now },
+    { id: now+18, name: 'Marco Polo Woonona',        address: '11 Watergum Way, Woonona NSW 2517',               _lat: -34.3430, _lng: 150.8996, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=0B3C4E57C574EDF48BBB114F72163076756E808B277023A63F6F8C27ED9082784426564E504B3D7A9CEABD2D5652683B75FC73DA54076BD366BF9B38A9DC7187&g=19970', doorCode: 'Front door: 2016, Fire stairs: 3699', notes: '', updatedAt: now },
+    { id: now+19, name: 'McCauley Lodge',            address: 'Nowra NSW 2541',                                  _lat: -34.8786, _lng: 150.5997, signInUrl: '', doorCode: '2515#', notes: '', updatedAt: now },
+    { id: now+20, name: 'Milton',                    address: 'Milton NSW 2538',                                 _lat: -35.3190, _lng: 150.4385, signInUrl: '', doorCode: '2006#', notes: '', updatedAt: now },
+    { id: now+21, name: 'Moruya',                    address: '35-39 River St, Moruya NSW 2537',                 _lat: -35.9077, _lng: 150.0844, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=760F31FA84B7089B0EBBC6B1EEBA3693F790744B16E65A25283D9ECA6B05905014C0D83680AE54A8D2212B03CF4A2A271A8EDB25BC065F8AA416F881E44F25E3&g=18567', doorCode: '0#', notes: '', updatedAt: now },
+    { id: now+22, name: 'Parkside',                  address: '1 Ross St, Wollongong NSW 2500',                  _lat: -34.4248, _lng: 150.8936, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=C4431D98F17ABE034FD5255BC30C4A6894EA641DDA659DB2B14CBF974AA12FD60907ADA2AAEAA4523B464161DCF5AFA781A261EE539EF46E19663ED216D64CD9', doorCode: 'Front door: #7275, Lock box in workshop: 6482', notes: '', updatedAt: now },
+    { id: now+23, name: 'Peakhurst EKC',             address: '24 Turpentine Ave, Peakhurst NSW 2210',           _lat: -33.9638, _lng: 151.0561, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=FAF918DE2AB2F7EE166D10A5878863DB12BAB9EF22DB4D614F7B35E7A5C52C11E0586E7C2A42BF3A7F1EB31D9AAAA85CC34C605F0FE7706F2FAD1250A0307E80&g=18569', doorCode: 'Gate: 210, Door: 8963', notes: '', updatedAt: now },
+    { id: now+24, name: 'Sans Souci',                address: 'Sans Souci NSW 2219',                             _lat: -33.9967, _lng: 151.1167, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=497EDA70A3C1F1AC1488E13430E027A44837AEE997D4ABF1F05F4D798D389D60412A613BCD0839AC777B47475CC0F9DD0D7283201F83F3FF878BAF3160FF01A1&g=18630', doorCode: '', notes: '', updatedAt: now },
+    { id: now+25, name: 'St George Basin',           address: '87 Loralyn Ave, St Georges Basin NSW 2540',       _lat: -35.1069, _lng: 150.5783, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=B46312D66602D0B6F0397592F2BA5F1C7DBCEF02A5EAD98632417E6C8D995F4D26E5704673E8C8B3705A707339EFAB423358B361EB98B4E5CA169EE155419D5D&g=18571', doorCode: '', notes: '', updatedAt: now },
+    { id: now+26, name: 'Tarrawanna Care Centre',    address: '74-80 Caldwell Ave, Tarrawanna NSW 2518',         _lat: -34.3886, _lng: 150.8808, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=578FA9E94E07FBEBED321E59A3BC7D583F99537D5247BE58BFDD80332898287CF762CD31F37EA0FF1F146A527A9A130877E1A4EB87690BB3ED7FD9F5E70F10DE&g=18572', doorCode: '8152↩, Laundry lock box: 0005, Basement: 2019, Dementia: 3697, Lift: 3697', notes: '', updatedAt: now },
+    { id: now+27, name: 'Tarrawanna Depot',          address: 'Tarrawanna NSW 2518',                             _lat: -34.3886, _lng: 150.8808, signInUrl: '', doorCode: '6482 arrow', notes: '', updatedAt: now },
+    { id: now+28, name: 'Tarrawanna Village',        address: 'Tarrawanna NSW 2518',                             _lat: -34.3886, _lng: 150.8808, signInUrl: '', doorCode: 'Community room: 2518', notes: '', updatedAt: now },
+    { id: now+29, name: 'The Clyde',                 address: 'Batemans Bay NSW 2536',                           _lat: -35.7076, _lng: 150.1732, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=286B8AF939167056A769FE357D1EDFB6E575CADE8FAAD16775AE46881944EACDF770AF42A287F542EBB872FA0F6ECA422288F199D5FE6802ED5D5DB3C1F11AC3&g=18574', doorCode: '0809', notes: '', updatedAt: now },
+    { id: now+30, name: 'Thomas Holt Kirrawee',      address: 'Kirrawee NSW 2232',                               _lat: -34.0369, _lng: 151.0686, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=CB04883D37BDC13F74F3E183B2F2A75364C5ABA46EBC4CC50F1A241A4C10465CF1FF127035D2B63A790004BEFDFA17C90FDA1B387F492F5EF69D2DC0771E7043', doorCode: '', notes: '', updatedAt: now },
+    { id: now+31, name: 'Towradgi',                  address: 'Towradgi NSW 2518',                               _lat: -34.3886, _lng: 150.8808, signInUrl: '', doorCode: 'Tasman CRT: 3939e, Max Diment: 3935e, Common room: 4251, Nursing home door: 1975e', notes: '', updatedAt: now },
+    { id: now+32, name: 'UC Unanderra N/H',          address: 'Unanderra NSW 2526',                              _lat: -34.4947, _lng: 150.8522, signInUrl: '', doorCode: 'Rear door: 4223e, Lift: 1234, Front door: 1524#, Utility rooms: 1234, Dementia wing: 1524#', notes: '', updatedAt: now },
+    { id: now+33, name: 'William Beach Gardens',     address: 'Kanahooka NSW 2530',                              _lat: -34.5197, _lng: 150.8386, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=46700196231D026EA97A1E9B7212648134B4B65C55C88E49877504EE360F3C77AF317E9841C548BCBB91EF4C04807996AC41FEDE1380B55437FA0FB16F81BF58', doorCode: 'Flinders: 2530, 57042#, Accuna: 3697', notes: '', updatedAt: now },
+    { id: now+34, name: 'Woolwich',                  address: 'Woolwich NSW 2110',                               _lat: -33.8438, _lng: 151.1688, signInUrl: '', doorCode: '2110', notes: '', updatedAt: now },
+    { id: now+35, name: 'Woonona',                   address: 'Popes Rd, Woonona NSW 2517',                      _lat: -34.3430, _lng: 150.8996, signInUrl: 'https://www.app.complyme.com.au/Login.aspx?qrsitelogin=D747F07DDA7ECA76A645DA3AF11086764789197774C179F95A68BA702E14581548773A03B6B3E1151953455B4156343C2319B13C46B1FD2C93533115D9380A9D', doorCode: 'Flametree: 2540, Church: 1973', notes: '', updatedAt: now },
   ];
   saveLocal();
 }
