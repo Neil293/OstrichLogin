@@ -1611,7 +1611,8 @@
   <div class="qr-display-box" onclick="event.stopPropagation()">
     <div class="qr-display-title" id="qrDisplayTitle"></div>
     <div class="qr-display-sub">Scan to sign in / out</div>
-    <canvas id="qrDisplayCanvas" width="240" height="240"></canvas>
+    <div id="qrDisplayLoader" style="width:240px;height:240px;display:flex;align-items:center;justify-content:center;margin:0 auto;color:#999;font-size:13px">Generating…</div>
+    <img id="qrDisplayImg" src="" alt="QR Code" width="240" height="240" style="display:none;border-radius:6px;margin:0 auto;display:none">
     <button class="qr-display-close" onclick="closeSignInQR()">Close</button>
   </div>
 </div>
@@ -2776,71 +2777,20 @@ function showSignInQR(url, name) {
   document.getElementById('qrDisplayTitle').textContent = name;
   document.getElementById('qrDisplayOverlay').classList.add('open');
 
-  // Load qrcode library if not already loaded
-  if (window.QRCode) {
-    renderQR(url);
-  } else {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-    script.onload = () => renderQR(url);
-    script.onerror = () => renderQRFallback(url);
-    document.head.appendChild(script);
-  }
-}
+  // Use qrserver.com API — generates QR as an image, no library needed
+  const img = document.getElementById('qrDisplayImg');
+  img.style.display = 'none';
+  const loader = document.getElementById('qrDisplayLoader');
+  if (loader) loader.style.display = 'block';
 
-function renderQR(url) {
-  const canvas = document.getElementById('qrDisplayCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Use QRCode library to generate into a temp div then draw on canvas
-  const tmp = document.createElement('div');
-  tmp.style.display = 'none';
-  document.body.appendChild(tmp);
-
-  try {
-    new QRCode(tmp, {
-      text: url,
-      width: 240,
-      height: 240,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-    // QRCode creates an img — draw it onto our canvas
-    setTimeout(() => {
-      const img = tmp.querySelector('img') || tmp.querySelector('canvas');
-      if (img && img.tagName === 'IMG') {
-        const i = new Image();
-        i.onload = () => ctx.drawImage(i, 0, 0, 240, 240);
-        i.src = img.src;
-      } else if (img && img.tagName === 'CANVAS') {
-        ctx.drawImage(img, 0, 0, 240, 240);
-      }
-      document.body.removeChild(tmp);
-    }, 100);
-  } catch(e) {
-    document.body.removeChild(tmp);
-    renderQRFallback(url);
-  }
-}
-
-function renderQRFallback(url) {
-  // Fallback: use Google Charts QR API
-  const canvas = document.getElementById('qrDisplayCanvas');
-  const ctx = canvas.getContext('2d');
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => ctx.drawImage(img, 0, 0, 240, 240);
-  img.onerror = () => {
-    ctx.fillStyle = '#f5f5f5';
-    ctx.fillRect(0, 0, 240, 240);
-    ctx.fillStyle = '#666';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('QR generation failed', 120, 120);
+  img.onload = () => {
+    img.style.display = 'block';
+    if (loader) loader.style.display = 'none';
   };
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;
+  img.onerror = () => {
+    if (loader) loader.textContent = 'Failed to generate QR';
+  };
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data=' + encodeURIComponent(url);
 }
 
 function closeSignInQR() {
