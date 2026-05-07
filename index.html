@@ -1279,7 +1279,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.2.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.3.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1402,7 +1402,7 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.2.0 — Fairy Meadow Plumbing</span></div>
+            <div class="settings-desc"><span class="app-version-label">v2.3.0 — Fairy Meadow Plumbing</span></div>
           </div>
         </div>
 
@@ -1644,7 +1644,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -1690,51 +1690,15 @@ function saveLocal() {
 //  SEED DEFAULT ADMIN
 // ─────────────────────────────────────────────
 async function seedDefaultAdmin() {
-  if (_users.length === 0) {
-    const adminHash = await sha256('admin');
-    const fmpsHash  = await sha256('fmps1510');
-    _users = [
-      {
-        id: Date.now(),
-        username: 'neil',
-        password: adminHash,
-        name: 'Neil Auchterlonie',
-        role: 'admin'
-      },
-      {
-        id: Date.now() + 1,
-        username: 'fmps',
-        password: fmpsHash,
-        name: 'Fairy Meadow Plumbing',
-        role: 'user'
-      }
-    ];
-    saveLocal();
-  } else {
-    // Ensure FMPS account exists if missing (migration for existing installs)
-    if (!_users.find(u => u.username === 'fmps')) {
-      const fmpsHash = await sha256('fmps1510');
-      _users.push({
-        id: Date.now() + 1,
-        username: 'fmps',
-        password: fmpsHash,
-        name: 'Fairy Meadow Plumbing',
-        role: 'user'
-      });
-      saveLocal();
-    }
-    // Ensure neil is admin
-    const neil = _users.find(u => u.username === 'neil');
-    if (neil && neil.role !== 'admin') {
-      neil.role = 'admin';
-      saveLocal();
-    }
-  }
-  if (_sites.length === 0) {
-    seedSites();
-  } else {
-    migrateAddresses();
-  }
+  // Only called on a truly fresh install (no local data, no Firebase data)
+  const adminHash = await sha256('admin');
+  const fmpsHash  = await sha256('fmps1510');
+  _users = [
+    { id: Date.now(),   username: 'neil', password: adminHash, name: 'Neil Auchterlonie',   role: 'admin', permissions: null },
+    { id: Date.now()+1, username: 'fmps', password: fmpsHash,  name: 'Fairy Meadow Plumbing', role: 'user', permissions: defaultPermissions() }
+  ];
+  seedSites();
+  saveLocal();
 }
 
 // One-time migration: patch addresses into existing records that have none
@@ -1991,20 +1955,78 @@ function requireAdmin() {
 // ─────────────────────────────────────────────
 async function init() {
   loadLocal();
-  await seedDefaultAdmin();
 
-  // Check for existing session
-  if (_session) {
-    // Validate session user still exists
-    const still = _users.find(u => u.username === _session.username);
-    if (still) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('appShell').style.display = 'block';
-      bootApp();
-      return;
+  // If we have local data, show login immediately (don't wait for Firebase)
+  // Firebase will sync in the background after login
+  if (_users.length > 0) {
+    await migrateOnly();
+    if (_session) {
+      const still = _users.find(u => u.username === _session.username);
+      if (still) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        bootApp();
+        return;
+      }
     }
+    document.getElementById('loginScreen').style.display = 'flex';
+    return;
   }
+
+  // No local data — check Firebase before seeding defaults
+  // This prevents wiping real data on a fresh device load
   document.getElementById('loginScreen').style.display = 'flex';
+  setSyncStatus('syncing', 'Loading data…');
+  const loaded = await tryLoadFromFirebase();
+  if (loaded) {
+    // Firebase had data — use it, don't seed defaults
+    migrateOnly();
+    setSyncStatus('synced', 'Data loaded');
+  } else {
+    // Truly fresh install — seed defaults
+    await seedDefaultAdmin();
+  }
+}
+
+// Migration only (no seeding) — safe to call on every load
+async function migrateOnly() {
+  // Ensure neil is admin
+  const neil = _users.find(u => u.username === 'neil');
+  if (neil && neil.role !== 'admin') { neil.role = 'admin'; saveLocal(); }
+  // Ensure FMPS exists
+  if (!_users.find(u => u.username === 'fmps')) {
+    const fmpsHash = await sha256('fmps1510');
+    _users.push({ id: Date.now()+1, username: 'fmps', name: 'Fairy Meadow Plumbing', password: fmpsHash, role: 'user', permissions: defaultPermissions() });
+    saveLocal();
+  }
+  // Migrate site data
+  if (_sites.length > 0) migrateAddresses();
+}
+
+// Try to load from Firebase before falling back to seed
+// Returns true if data was loaded, false if Firebase unavailable or empty
+async function tryLoadFromFirebase() {
+  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') return false;
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    const app  = initializeApp(FIREBASE_CONFIG);
+    const db   = getFirestore(app);
+    const snap = await getDoc(doc(db, 'ostrich_sites', 'main'));
+    if (snap.exists()) {
+      const remote = snap.data();
+      if (remote.sites && remote.sites.length > 0) {
+        _sites = remote.sites;
+        _users = remote.users || [];
+        localStorage.setItem('ostrich_last_ts', String(remote.ts || Date.now()));
+        saveLocal();
+        return true;
+      }
+    }
+  } catch(e) {
+    console.warn('Firebase pre-load failed:', e);
+  }
+  return false;
 }
 
 function bootApp() {
