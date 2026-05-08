@@ -1326,7 +1326,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.5.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.6.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1469,7 +1469,7 @@
           <div class="settings-row">
             <div>
               <div class="settings-label">OstrichLogin</div>
-              <div class="settings-desc"><span class="app-version-label">v2.5.0 — Fairy Meadow Plumbing</span></div>
+              <div class="settings-desc"><span class="app-version-label">v2.6.0 — Fairy Meadow Plumbing</span></div>
             </div>
           </div>
         </div>
@@ -1712,7 +1712,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.6.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -1746,7 +1746,15 @@ async function sha256(str) {
 function loadLocal() {
   try { _sites = JSON.parse(localStorage.getItem(K_SITES) || '[]'); } catch { _sites = []; }
   try { _users = JSON.parse(localStorage.getItem(K_USERS) || '[]'); } catch { _users = []; }
-  try { _session = JSON.parse(localStorage.getItem(K_SESSION) || 'null'); } catch { _session = null; }
+  try {
+    // Try localStorage first, fall back to sessionStorage
+    const stored = localStorage.getItem(K_SESSION) || sessionStorage.getItem(K_SESSION);
+    _session = JSON.parse(stored || 'null');
+    // If found in sessionStorage but not localStorage, restore it
+    if (_session && !localStorage.getItem(K_SESSION)) {
+      localStorage.setItem(K_SESSION, JSON.stringify(_session));
+    }
+  } catch { _session = null; }
 }
 
 function saveLocal() {
@@ -1994,7 +2002,9 @@ async function doLogin() {
   }
 
   _session = { username: user.username, name: user.name, role: user.role, ts: Date.now() };
-  localStorage.setItem(K_SESSION, JSON.stringify(_session));
+  const sessionStr = JSON.stringify(_session);
+  localStorage.setItem(K_SESSION, sessionStr);
+  sessionStorage.setItem(K_SESSION, sessionStr); // backup in case localStorage is cleared
 
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display = 'block';
@@ -2008,6 +2018,7 @@ document.getElementById('loginPass').addEventListener('keydown', e => {
 function doLogout() {
   _session = null;
   localStorage.removeItem(K_SESSION);
+  sessionStorage.removeItem(K_SESSION);
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginUser').value = '';
@@ -2029,8 +2040,9 @@ async function init() {
   if (_users.length > 0) {
     await migrateOnly();
     if (_session) {
+      // Accept session if user exists, OR if users haven't loaded yet (trust the saved session)
       const still = _users.find(u => u.username === _session.username);
-      if (still) {
+      if (still || _users.length === 0) {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appShell').style.display = 'block';
         bootApp();
