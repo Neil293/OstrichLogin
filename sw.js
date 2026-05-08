@@ -1,34 +1,41 @@
-const CACHE_NAME = 'ostrichlogin-v2.3.0';
+// OstrichLogin Service Worker v2.6.0
+// Strategy: cache-first for assets, network-first for HTML
+// Does NOT force-reload on update (prevents session loss)
+
+const CACHE_NAME = 'ostrichlogin-v2.6.0';
 const ASSETS = [
   '/OstrichLogin/',
   '/OstrichLogin/index.html',
   '/OstrichLogin/manifest.json',
+  '/OstrichLogin/icon-192.png',
+  '/OstrichLogin/icon-512.png',
 ];
 
-// Install: cache core assets
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
+  // Do NOT call skipWaiting() — prevents force-reloading active sessions
 });
 
-// Activate: delete old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
-  self.clients.claim();
+  // Do NOT call clients.claim() — prevents wiping sessionStorage on update
 });
 
-// Fetch: network first for HTML (gets updates), cache first for everything else
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Always go network-first for the main HTML so updates deploy immediately
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+  // Skip non-GET and cross-origin requests
+  if (event.request.method !== 'GET') return;
+  if (!url.origin.includes('github.io') && !url.origin.includes('localhost')) return;
+
+  // Network-first for HTML — always get latest version
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
@@ -41,12 +48,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first for everything else (icons, manifest, CDN assets)
+  // Cache-first for icons, manifest
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        if (response.ok) {
+        if (response && response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }

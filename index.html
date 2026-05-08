@@ -1721,6 +1721,54 @@ const K_SITES    = 'ostrich_sites_v1';
 const K_USERS    = 'ostrich_users_v1';
 const K_SESSION  = 'ostrich_session_v1';
 
+// ── IndexedDB for persistent session (survives PWA storage eviction) ──────────
+const IDB_NAME = 'ostrichlogin_db';
+const IDB_STORE = 'session';
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbSet(key, value) {
+  try {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('idbSet failed:', e); }
+}
+
+async function idbGet(key) {
+  try {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch(e) { return null; }
+}
+
+async function idbDelete(key) {
+  try {
+    const db = await idbOpen();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = resolve;
+    });
+  } catch(e) { console.warn('idbDelete failed:', e); }
+}
+
 // ─────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────
@@ -1747,10 +1795,8 @@ function loadLocal() {
   try { _sites = JSON.parse(localStorage.getItem(K_SITES) || '[]'); } catch { _sites = []; }
   try { _users = JSON.parse(localStorage.getItem(K_USERS) || '[]'); } catch { _users = []; }
   try {
-    // Try localStorage first, fall back to sessionStorage
     const stored = localStorage.getItem(K_SESSION) || sessionStorage.getItem(K_SESSION);
     _session = JSON.parse(stored || 'null');
-    // If found in sessionStorage but not localStorage, restore it
     if (_session && !localStorage.getItem(K_SESSION)) {
       localStorage.setItem(K_SESSION, JSON.stringify(_session));
     }
@@ -2004,7 +2050,8 @@ async function doLogin() {
   _session = { username: user.username, name: user.name, role: user.role, ts: Date.now() };
   const sessionStr = JSON.stringify(_session);
   localStorage.setItem(K_SESSION, sessionStr);
-  sessionStorage.setItem(K_SESSION, sessionStr); // backup in case localStorage is cleared
+  sessionStorage.setItem(K_SESSION, sessionStr);
+  idbSet(K_SESSION, sessionStr); // most persistent — survives PWA storage pressure
 
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').style.display = 'block';
@@ -2019,6 +2066,7 @@ function doLogout() {
   _session = null;
   localStorage.removeItem(K_SESSION);
   sessionStorage.removeItem(K_SESSION);
+  idbDelete(K_SESSION);
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginUser').value = '';
