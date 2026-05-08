@@ -1281,7 +1281,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.3.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.4.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1404,7 +1404,7 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.3.0 — Fairy Meadow Plumbing</span></div>
+            <div class="settings-desc"><span class="app-version-label">v2.4.0 — Fairy Meadow Plumbing</span></div>
           </div>
         </div>
 
@@ -1646,7 +1646,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.4.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -2017,10 +2017,13 @@ async function tryLoadFromFirebase() {
     const snap = await getDoc(doc(db, 'ostrich_sites', 'main'));
     if (snap.exists()) {
       const remote = snap.data();
-      if (remote.sites && remote.sites.length > 0) {
+      const localTs = parseInt(localStorage.getItem('ostrich_last_ts') || '0');
+      const remoteTs = remote.ts || 0;
+      // Only use remote if it has data AND is newer than local
+      if (remote.sites && remote.sites.length > 0 && remote.users && remote.users.length > 0 && remoteTs >= localTs) {
         _sites = remote.sites;
-        _users = remote.users || [];
-        localStorage.setItem('ostrich_last_ts', String(remote.ts || Date.now()));
+        _users = remote.users;
+        localStorage.setItem('ostrich_last_ts', String(remoteTs));
         saveLocal();
         return true;
       }
@@ -2627,11 +2630,18 @@ function doRestore(input) {
 }
 
 // ─────────────────────────────────────────────
-//  FIREBASE
+//  FIREBASE — safe sync strategy
+//  - On login: read Firebase, only apply if NEWER than local
+//  - On save:  write to Firebase with timestamp, 30s debounce
+//  - Never overwrite local data with older remote data
+//  - No live listener (prevents surprise overwrites)
 // ─────────────────────────────────────────────
+let _fbDoc = null;
+let _fbLastWriteTs = 0;
+
 function initFirebase() {
   if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
-    setSyncStatus('offline', 'Firebase not configured — running locally only');
+    setSyncStatus('offline', 'Firebase not configured');
     return;
   }
 
@@ -2639,58 +2649,82 @@ function initFirebase() {
   script.type = 'module';
   script.textContent = `
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getFirestore, doc, onSnapshot, setDoc, getDoc }
+    import { getFirestore, doc, getDoc, setDoc }
       from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const app = initializeApp(${JSON.stringify(FIREBASE_CONFIG)});
     const db  = getFirestore(app);
-    window._ostrichFirestore = db;
-    window._ostrichDoc = doc(db, 'ostrich_sites', 'main');
+    window._fbDoc = doc(db, 'ostrich_sites', 'main');
 
-    // Listen for remote changes
-    onSnapshot(window._ostrichDoc, snap => {
-      if (!snap.exists()) return;
-      const remote = snap.data();
-      if (!remote.ts) return;
-      if (remote.ts <= window._ostrichSyncTs) return;
-      window._ostrichApplyRemote(remote);
-    }, err => {
-      window._ostrichSetSyncStatus('error', 'Sync error: ' + err.message);
-    });
-
-    window._ostrichFirebaseReady = true;
-    window._ostrichSetSyncStatus('synced', 'Connected');
-    window._ostrichSyncNow();
+    // Read once on login — only apply if remote is newer than local
+    try {
+      const snap = await getDoc(window._fbDoc);
+      if (snap.exists()) {
+        const remote = snap.data();
+        const localTs  = parseInt(localStorage.getItem('ostrich_last_ts') || '0');
+        const remoteTs = remote.ts || 0;
+        if (remoteTs > localTs && remote.sites && remote.sites.length > 0) {
+          // Remote is newer — apply it
+          window._applyRemote(remote, remoteTs);
+        } else if (localTs > 0) {
+          // Local is newer or same — push local up to Firebase
+          window._pushToFirebase();
+        } else if (!snap.exists() || !remote.sites || remote.sites.length === 0) {
+          // Firebase empty — push local data up
+          window._pushToFirebase();
+        } else {
+          window._setSyncStatus('synced', 'Up to date');
+        }
+      } else {
+        // No Firebase document yet — push local data up
+        window._pushToFirebase();
+      }
+    } catch(e) {
+      window._setSyncStatus('error', 'Read failed: ' + e.message);
+    }
   `;
   document.head.appendChild(script);
 
-  window._ostrichSyncTs = 0;
-
-  window._ostrichApplyRemote = (remote) => {
-    window._ostrichSyncTs = remote.ts;
-    _sites = remote.sites || [];
-    _users = remote.users || [];
+  window._applyRemote = (remote, ts) => {
+    // Safety check — never apply empty data
+    if (!remote.sites || remote.sites.length === 0) {
+      setSyncStatus('synced', 'Remote empty — keeping local');
+      return;
+    }
+    if (!remote.users || remote.users.length === 0) {
+      setSyncStatus('synced', 'Remote has no users — keeping local');
+      return;
+    }
+    _sites = remote.sites;
+    _users = remote.users;
+    localStorage.setItem('ostrich_last_ts', String(ts));
     saveLocal();
     renderSites();
     renderUsers();
     setSyncStatus('synced', 'Synced ' + new Date().toLocaleTimeString());
   };
 
-  window._ostrichSetSyncStatus = setSyncStatus;
-
-  window._ostrichSyncNow = async () => {
-    if (!window._ostrichDoc) return;
-    setSyncStatus('syncing', 'Syncing…');
+  window._pushToFirebase = async () => {
+    if (!window._fbDoc) return;
+    // Safety check — never push empty data
+    if (_sites.length === 0 && _users.length === 0) {
+      setSyncStatus('error', 'Nothing to push');
+      return;
+    }
+    setSyncStatus('syncing', 'Saving…');
     try {
       const { setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
       const ts = Date.now();
-      window._ostrichSyncTs = ts;
-      await setDoc(window._ostrichDoc, { sites: _sites, users: _users, ts });
-      setSyncStatus('synced', 'Synced ' + new Date().toLocaleTimeString());
+      await setDoc(window._fbDoc, { sites: _sites, users: _users, ts });
+      localStorage.setItem('ostrich_last_ts', String(ts));
+      _fbLastWriteTs = ts;
+      setSyncStatus('synced', 'Saved ' + new Date().toLocaleTimeString());
     } catch(e) {
-      setSyncStatus('error', 'Sync failed: ' + e.message);
+      setSyncStatus('error', 'Save failed: ' + e.message);
     }
   };
+
+  window._setSyncStatus = setSyncStatus;
 }
 
 function setSyncStatus(state, msg) {
@@ -2701,16 +2735,21 @@ function setSyncStatus(state, msg) {
 }
 
 function scheduleSyncToFirebase() {
+  // Update local timestamp immediately so this device's data is "newest"
+  const ts = Date.now();
+  localStorage.setItem('ostrich_last_ts', String(ts));
   clearTimeout(_syncTimer);
   setSyncStatus('syncing', 'Pending…');
+  // 30 second debounce — batches rapid changes
   _syncTimer = setTimeout(() => {
-    if (window._ostrichSyncNow) window._ostrichSyncNow();
-  }, 3000);
+    if (window._pushToFirebase) window._pushToFirebase();
+  }, 30000);
 }
 
 function syncNow() {
-  if (window._ostrichSyncNow) window._ostrichSyncNow();
-  else toast('Firebase not configured.', 'error');
+  clearTimeout(_syncTimer);
+  if (window._pushToFirebase) window._pushToFirebase();
+  else toast('Firebase not ready.', 'error');
 }
 
 // ─────────────────────────────────────────────
