@@ -766,6 +766,37 @@
   .role-badge.user { background: rgba(68,144,224,0.12); color: var(--info); }
 
   /* ── SETTINGS TAB ─────────────────────────── */
+  /* Settings sub-tabs */
+  #settingsSubNav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .settings-sub-tab {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    user-select: none;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .settings-sub-tab:hover { color: var(--text2); }
+  .settings-sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
   .settings-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -1348,80 +1379,90 @@
     <!-- ── SETTINGS TAB ── -->
     <div id="tab-settings" style="display:none">
 
-      <!-- Users section (admin only) -->
-      <div class="settings-section" id="usersSection">
-        <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>Users</span>
-          <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
-        </div>
-        <table class="users-table" id="usersTable">
-          <thead style="display:none">
-            <tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr>
-          </thead>
-          <tbody id="usersBody"></tbody>
-        </table>
+      <!-- Settings sub-nav -->
+      <div id="settingsSubNav">
+        <button class="settings-sub-tab active" data-stab="stab-users" onclick="switchSettingsTab('stab-users')" id="stabUsersBtn">Users</button>
+        <button class="settings-sub-tab" data-stab="stab-data" onclick="switchSettingsTab('stab-data')" id="stabDataBtn">Data</button>
+        <button class="settings-sub-tab" data-stab="stab-account" onclick="switchSettingsTab('stab-account')">Account</button>
       </div>
 
-
-      <div class="settings-section" id="dataSection">
-        <div class="settings-section-title">Data</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Backup</div>
-            <div class="settings-desc">Export all sites and users as JSON</div>
+      <!-- ── USERS SUB-TAB ── -->
+      <div id="stab-users">
+        <div class="settings-section" id="usersSection">
+          <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Authorised Users</span>
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="doBackup()">↓ Export</button>
-        </div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Restore</div>
-            <div class="settings-desc">Import from a JSON backup file</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('restoreFile').click()">↑ Import</button>
-        </div>
-        <input type="file" id="restoreFile" accept=".json" onchange="doRestore(this)">
-      </div>
-
-      <div class="settings-section">
-        <div class="settings-section-title">Firebase Sync</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Sync status</div>
-            <div class="settings-desc" id="syncStatusText">Not connected</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="syncNow()">⟳ Sync now</button>
+          <table class="users-table" id="usersTable">
+            <thead style="display:none">
+              <tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="settings-section">
-        <div class="settings-section-title">Account</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Change Password</div>
-            <div class="settings-desc">Update your login password</div>
+      <!-- ── DATA SUB-TAB ── -->
+      <div id="stab-data" style="display:none">
+        <div class="settings-section" id="dataSection">
+          <div class="settings-section-title">Backup &amp; Restore</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Backup</div>
+              <div class="settings-desc">Export all sites and users as JSON</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="doBackup()">↓ Export</button>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="openChangePasswordModal()">Change</button>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Restore</div>
+              <div class="settings-desc">Import from a JSON backup file</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('restoreFile').click()">↑ Import</button>
+          </div>
+          <input type="file" id="restoreFile" accept=".json" onchange="doRestore(this)">
         </div>
-      </div>
 
-      <div class="settings-section">
-        <div class="settings-section-title">About</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.5.0 — Fairy Meadow Plumbing</span></div>
+        <div class="settings-section">
+          <div class="settings-section-title">Firebase Sync</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Sync status</div>
+              <div class="settings-desc" id="syncStatusText">Not connected</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="syncNow()">⟳ Sync now</button>
           </div>
         </div>
       </div>
 
-      <div class="settings-section">
-        <div class="settings-section-title">Session</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-label">Signed in as <span id="settingsUserName" style="color:var(--accent)"></span></div>
-            <div class="settings-desc">Tap to sign out of this device</div>
+      <!-- ── ACCOUNT SUB-TAB ── -->
+      <div id="stab-account" style="display:none">
+        <div class="settings-section">
+          <div class="settings-section-title">Account</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Change Password</div>
+              <div class="settings-desc">Update your login password</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="openChangePasswordModal()">Change</button>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="doLogout()">Sign Out</button>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Signed in as <span id="settingsUserName" style="color:var(--accent)"></span></div>
+              <div class="settings-desc">Tap to sign out of this device</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="doLogout()">Sign Out</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">About</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">OstrichLogin</div>
+              <div class="settings-desc"><span class="app-version-label">v2.5.0 — Fairy Meadow Plumbing</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2057,8 +2098,12 @@ function bootApp() {
   const isAdmin = requireAdmin();
   document.getElementById('addSiteBtn').style.display  = isAdmin ? '' : 'none';
   document.getElementById('dataSection').style.display = (isAdmin || hasPermission('backupRestore')) ? '' : 'none';
+  const stabDataBtn = document.getElementById('stabDataBtn');
+  if (stabDataBtn) stabDataBtn.style.display = (isAdmin || hasPermission('backupRestore')) ? '' : 'none';
   const usersSection = document.getElementById('usersSection');
   if (usersSection) usersSection.style.display = isAdmin ? '' : 'none';
+  const stabUsersBtn = document.getElementById('stabUsersBtn');
+  if (stabUsersBtn) stabUsersBtn.style.display = isAdmin ? '' : 'none';
   const settingsUserName = document.getElementById('settingsUserName');
   if (settingsUserName) settingsUserName.textContent = _session.name || _session.username;
 
@@ -2076,7 +2121,21 @@ function switchTab(tab) {
   ['sites','settings'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
   });
-  if (tab === 'settings') renderUsers();
+  if (tab === 'settings') {
+    renderUsers();
+    // Default to Users tab if admin, else Data tab
+    const defaultTab = requireAdmin() ? 'stab-users' : 'stab-data';
+    switchSettingsTab(defaultTab);
+  }
+}
+
+function switchSettingsTab(tabId) {
+  ['stab-users','stab-data','stab-account'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? '' : 'none';
+    const btn = document.querySelector(`[data-stab="${id}"]`);
+    if (btn) btn.classList.toggle('active', id === tabId);
+  });
 }
 
 // ─────────────────────────────────────────────
