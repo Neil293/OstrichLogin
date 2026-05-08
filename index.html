@@ -2120,7 +2120,9 @@ async function recoverSession() {
 }
 
 function showApp() {
-  showApp();
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  bootApp();
 }
 
 function showLogin() {
