@@ -1326,7 +1326,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.6.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.7.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1469,7 +1469,7 @@
           <div class="settings-row">
             <div>
               <div class="settings-label">OstrichLogin</div>
-              <div class="settings-desc"><span class="app-version-label">v2.6.0 — Fairy Meadow Plumbing</span></div>
+              <div class="settings-desc"><span class="app-version-label">v2.7.0 — Fairy Meadow Plumbing</span></div>
             </div>
           </div>
         </div>
@@ -1712,7 +1712,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.6.0';
+const APP_VERSION = '2.7.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -2053,9 +2053,7 @@ async function doLogin() {
   sessionStorage.setItem(K_SESSION, sessionStr);
   idbSet(K_SESSION, sessionStr); // most persistent — survives PWA storage pressure
 
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appShell').style.display = 'block';
-  bootApp();
+  showApp();
 }
 
 document.getElementById('loginPass').addEventListener('keydown', e => {
@@ -2083,38 +2081,53 @@ function requireAdmin() {
 async function init() {
   loadLocal();
 
-  // If we have local data, show login immediately (don't wait for Firebase)
-  // Firebase will sync in the background after login
+  // Recover session from all storage layers before checking
+  await recoverSession();
+
+  // Have local users — try to resume session
   if (_users.length > 0) {
-    await migrateOnly();
     if (_session) {
-      // Accept session if user exists, OR if users haven't loaded yet (trust the saved session)
-      const still = _users.find(u => u.username === _session.username);
-      if (still || _users.length === 0) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appShell').style.display = 'block';
-        bootApp();
-        return;
-      }
+      const user = _users.find(u => u.username === _session.username);
+      if (user) { showApp(); return; }
     }
-    document.getElementById('loginScreen').style.display = 'flex';
+    showLogin();
     return;
   }
 
-  // No local data — check Firebase before seeding defaults
-  // This prevents wiping real data on a fresh device load
-  document.getElementById('loginScreen').style.display = 'flex';
-  setSyncStatus('syncing', 'Loading data…');
+  // No local data — try Firebase first
+  showLogin();
   const loaded = await tryLoadFromFirebase();
   if (loaded) {
-    // Firebase had data — use it, don't seed defaults
-    migrateOnly();
-    setSyncStatus('synced', 'Data loaded');
+    if (_session) {
+      const user = _users.find(u => u.username === _session.username);
+      if (user) { showApp(); return; }
+    }
   } else {
-    // Truly fresh install — seed defaults
     await seedDefaultAdmin();
   }
 }
+
+async function recoverSession() {
+  if (_session) return;
+  try {
+    const ss = sessionStorage.getItem(K_SESSION);
+    if (ss) { _session = JSON.parse(ss); localStorage.setItem(K_SESSION, ss); return; }
+  } catch(e) {}
+  try {
+    const idb = await idbGet(K_SESSION);
+    if (idb) { _session = JSON.parse(idb); localStorage.setItem(K_SESSION, idb); return; }
+  } catch(e) {}
+}
+
+function showApp() {
+  showApp();
+}
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').style.display = 'none';
+}
+
 
 // Migration only (no seeding) — safe to call on every load
 async function migrateOnly() {
