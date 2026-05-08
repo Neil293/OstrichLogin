@@ -210,6 +210,20 @@
 
   .header-spacer { flex: 1; }
 
+  .btn-header-icon {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text2);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-header-icon:hover { border-color: var(--accent); color: var(--accent); }
+
   .header-user {
     font-size: 12px;
     color: var(--text2);
@@ -1281,7 +1295,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.4.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.5.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1306,15 +1320,11 @@
     <div class="header-user">
       <span id="headerUserName"></span>
       <span class="sync-dot" id="syncDot" title="Sync status"></span>
-      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+      <button class="btn btn-header-icon" onclick="switchTab('settings')" title="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </div>
   </header>
-
-  <nav id="navTabs">
-    <div class="nav-tab active" data-tab="sites" onclick="switchTab('sites')">Sites</div>
-    <div class="nav-tab" data-tab="users" onclick="switchTab('users')" id="usersTabBtn">Users</div>
-    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')">Settings</div>
-  </nav>
 
   <main id="appMain">
 
@@ -1335,29 +1345,24 @@
       <div class="site-grid" id="siteGrid"></div>
     </div>
 
-    <!-- ── USERS TAB ── -->
-    <div id="tab-users" style="display:none">
-      <div class="section-header">
-        <span class="section-title">Authorised Users</span>
-        <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
-      </div>
-      <div class="settings-section">
+    <!-- ── SETTINGS TAB ── -->
+    <div id="tab-settings" style="display:none">
+
+      <!-- Users section (admin only) -->
+      <div class="settings-section" id="usersSection">
+        <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>Users</span>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+        </div>
         <table class="users-table" id="usersTable">
           <thead style="display:none">
-            <tr>
-              <th>Name</th>
-              <th>Username</th>
-              <th>Role</th>
-              <th></th>
-            </tr>
+            <tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr>
           </thead>
           <tbody id="usersBody"></tbody>
         </table>
       </div>
-    </div>
 
-    <!-- ── SETTINGS TAB ── -->
-    <div id="tab-settings" style="display:none">
+
       <div class="settings-section" id="dataSection">
         <div class="settings-section-title">Data</div>
         <div class="settings-row">
@@ -1404,11 +1409,22 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">OstrichLogin</div>
-            <div class="settings-desc"><span class="app-version-label">v2.4.0 — Fairy Meadow Plumbing</span></div>
+            <div class="settings-desc"><span class="app-version-label">v2.5.0 — Fairy Meadow Plumbing</span></div>
           </div>
         </div>
-
       </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Session</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Signed in as <span id="settingsUserName" style="color:var(--accent)"></span></div>
+            <div class="settings-desc">Tap to sign out of this device</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="doLogout()">Sign Out</button>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -1646,7 +1662,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -2039,9 +2055,12 @@ function bootApp() {
 
   // Show/hide admin controls
   const isAdmin = requireAdmin();
-  document.getElementById('usersTabBtn').style.display = isAdmin ? '' : 'none';
   document.getElementById('addSiteBtn').style.display  = isAdmin ? '' : 'none';
   document.getElementById('dataSection').style.display = (isAdmin || hasPermission('backupRestore')) ? '' : 'none';
+  const usersSection = document.getElementById('usersSection');
+  if (usersSection) usersSection.style.display = isAdmin ? '' : 'none';
+  const settingsUserName = document.getElementById('settingsUserName');
+  if (settingsUserName) settingsUserName.textContent = _session.name || _session.username;
 
   renderSites();
   renderUsers();
@@ -2054,11 +2073,10 @@ function bootApp() {
 //  TABS
 // ─────────────────────────────────────────────
 function switchTab(tab) {
-  ['sites','users','settings'].forEach(t => {
+  ['sites','settings'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
-    document.querySelector(`[data-tab="${t}"]`).classList.toggle('active', t === tab);
   });
-  if (tab === 'users') renderUsers();
+  if (tab === 'settings') renderUsers();
 }
 
 // ─────────────────────────────────────────────
