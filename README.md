@@ -77,17 +77,6 @@ service cloud.firestore {
 
 ---
 
-## Default logins
-
-| Username | Password | Role |
-|---|---|---|
-| `neil` | `admin` | Admin |
-| `fmps` | `fmps1510` | User |
-
-**Change passwords after first login** via Settings → Change Password.
-
----
-
 ## Firebase sync strategy (free tier optimised)
 
 | Action | Strategy |
