@@ -1447,6 +1447,20 @@
       <!-- ── ACCOUNT SUB-TAB ── -->
       <div id="stab-account" style="display:none">
         <div class="settings-section">
+          <div class="settings-section-title">Preferences</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Default GPS Sort</div>
+              <div class="settings-desc">Automatically sort sites by distance on login</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="gpsDefaultToggle" onchange="setGpsDefault(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <div class="settings-section-title">Account</div>
           <div class="settings-row">
             <div>
@@ -2194,8 +2208,9 @@ function bootApp() {
   renderSites();
   renderUsers();
   initFirebase();
-  // Auto-trigger GPS sort by default
-  setTimeout(() => { if (!_gpsActive) toggleGpsSort(); }, 400);
+  const gpsToggle = document.getElementById('gpsDefaultToggle');
+  if (gpsToggle) gpsToggle.checked = getGpsDefault();
+  setTimeout(() => { if (!_gpsActive && getGpsDefault()) toggleGpsSort(); }, 400);
 }
 
 // ─────────────────────────────────────────────
@@ -2231,6 +2246,13 @@ function switchSettingsTab(tabId) {
 let _userLat = null;
 let _userLng = null;
 let _gpsActive = false;
+
+function getGpsDefault() {
+  return localStorage.getItem('ostrich_gps_default') !== 'false';
+}
+function setGpsDefault(val) {
+  localStorage.setItem('ostrich_gps_default', String(val));
+}
 
 function toggleGpsSort() {
   if (_gpsActive) {
