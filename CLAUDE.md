@@ -100,6 +100,8 @@ Uses `BarcodeDetector` API (Android Chrome) with jsQR as a fallback (loaded from
 
 QR display (showing a site's sign-in URL as a scannable QR) uses the `api.qrserver.com` external service.
 
+The sign-in service is **Linksafe**, hosted at `app.complyme.com.au` — the URLs are correct even though the domain name differs from the brand name.
+
 ## Git workflow
 
 Always develop on a feature branch, never commit directly to `main`. When done:
