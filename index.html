@@ -1511,6 +1511,14 @@
         <input type="text" id="siteAddress" placeholder="Street, Suburb NSW XXXX">
       </div>
       <div class="form-group">
+        <label>Location (GPS)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="siteLat" placeholder="Latitude" step="any" style="flex:1">
+          <input type="number" id="siteLng" placeholder="Longitude" step="any" style="flex:1">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="captureGps('siteLat','siteLng')" style="white-space:nowrap;flex-shrink:0">📍 My location</button>
+        </div>
+      </div>
+      <div class="form-group">
         <label>Sign-In URL</label>
         <div class="url-input-wrap">
           <input type="url" id="siteSignInUrl" placeholder="https://…">
@@ -1654,6 +1662,19 @@
     <div class="form-group">
       <label>Address</label>
       <input type="text" id="editSiteAddress" placeholder="Street, Suburb NSW XXXX">
+    </div>
+
+    <div class="edit-section-label">Location</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px">
+      <div class="form-group" style="flex:1;margin-bottom:0">
+        <label>Latitude</label>
+        <input type="number" id="editSiteLat" placeholder="e.g. -34.4248" step="any">
+      </div>
+      <div class="form-group" style="flex:1;margin-bottom:0">
+        <label>Longitude</label>
+        <input type="number" id="editSiteLng" placeholder="e.g. 150.8936" step="any">
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="captureGps('editSiteLat','editSiteLng')" style="white-space:nowrap;flex-shrink:0;height:38px">📍 My location</button>
     </div>
 
     <div class="edit-section-label">Access</div>
@@ -2254,6 +2275,16 @@ function setGpsDefault(val) {
   localStorage.setItem('ostrich_gps_default', String(val));
 }
 
+function captureGps(latId, lngId) {
+  if (!navigator.geolocation) { toast('GPS not available on this device.', 'error'); return; }
+  toast('Getting location…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById(latId).value = pos.coords.latitude.toFixed(6);
+    document.getElementById(lngId).value = pos.coords.longitude.toFixed(6);
+    toast('Location captured!', 'success');
+  }, () => toast('Could not get your location.', 'error'), { timeout: 10000 });
+}
+
 function toggleGpsSort() {
   if (_gpsActive) {
     _gpsActive = false;
@@ -2450,6 +2481,8 @@ function openEditPage(id) {
   document.getElementById('editPageTitle').textContent = s.name;
   document.getElementById('editSiteName').value      = s.name || '';
   document.getElementById('editSiteAddress').value   = s.address || '';
+  document.getElementById('editSiteLat').value       = s._lat != null ? s._lat : '';
+  document.getElementById('editSiteLng').value       = s._lng != null ? s._lng : '';
   document.getElementById('editSiteSignInUrl').value = s.signInUrl || '';
   renderAccessCodeRows('editAccessCodesList', s.accessCodes || [], 'addAccessCodeRow');
   document.getElementById('editSiteNotes').value     = s.notes || '';
@@ -2476,6 +2509,8 @@ function saveEditPage() {
     ..._sites[idx],
     name:      name,
     address:   document.getElementById('editSiteAddress').value.trim(),
+    _lat:      parseFloat(document.getElementById('editSiteLat').value) || null,
+    _lng:      parseFloat(document.getElementById('editSiteLng').value) || null,
     signInUrl: document.getElementById('editSiteSignInUrl').value.trim(),
     accessCodes: hasPermission('accessCodes')
       ? readAccessCodeRows('editAccessCodesList')
@@ -2513,6 +2548,8 @@ function openSiteModal(id = null) {
   document.getElementById('siteId').value       = id || '';
   document.getElementById('siteName').value     = s ? s.name     : '';
   document.getElementById('siteAddress').value  = s ? s.address  : '';
+  document.getElementById('siteLat').value       = s && s._lat != null ? s._lat : '';
+  document.getElementById('siteLng').value       = s && s._lng != null ? s._lng : '';
   document.getElementById('siteSignInUrl').value = s ? s.signInUrl : '';
   renderAccessCodeRows('modalAccessCodesList', s ? (s.accessCodes || []) : [], 'addModalAccessCodeRow');
   document.getElementById('siteNotes').value    = s ? s.notes    : '';
@@ -2532,6 +2569,8 @@ function saveSite() {
     id:        id ? Number(id) : Date.now(),
     name:      name,
     address:   document.getElementById('siteAddress').value.trim(),
+    _lat:      parseFloat(document.getElementById('siteLat').value) || null,
+    _lng:      parseFloat(document.getElementById('siteLng').value) || null,
     signInUrl: document.getElementById('siteSignInUrl').value.trim(),
     accessCodes: readAccessCodeRows('modalAccessCodesList'),
     notes:     document.getElementById('siteNotes').value.trim(),
