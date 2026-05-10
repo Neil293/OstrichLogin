@@ -1,8 +1,8 @@
-// OstrichLogin Service Worker v2.9.0
+// OstrichLogin Service Worker v2.10.0
 // Strategy: cache-first for assets, network-first for HTML
 // Does NOT force-reload on update (prevents session loss)
 
-const CACHE_NAME = 'ostrichlogin-v2.9.0';
+const CACHE_NAME = 'ostrichlogin-v2.10.0';
 const ASSETS = [
   '/OstrichLogin/',
   '/OstrichLogin/index.html',

@@ -1326,7 +1326,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.9.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.10.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1458,7 +1458,7 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" id="showGpsRow">
             <div>
               <div class="settings-label">Show GPS on Cards</div>
               <div class="settings-desc">Show GPS coordinates and capture button on site cards</div>
@@ -1493,7 +1493,7 @@
           <div class="settings-row">
             <div>
               <div class="settings-label">OstrichLogin</div>
-              <div class="settings-desc"><span class="app-version-label">v2.9.0 — Fairy Meadow Plumbing</span></div>
+              <div class="settings-desc"><span class="app-version-label">v2.10.0 — Fairy Meadow Plumbing</span></div>
             </div>
           </div>
         </div>
@@ -1757,7 +1757,7 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.10.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
@@ -2241,6 +2241,8 @@ function bootApp() {
   initFirebase();
   const gpsToggle = document.getElementById('gpsDefaultToggle');
   if (gpsToggle) gpsToggle.checked = getGpsDefault();
+  const showGpsRow = document.getElementById('showGpsRow');
+  if (showGpsRow) showGpsRow.style.display = isAdmin ? '' : 'none';
   const showGpsToggle = document.getElementById('showGpsToggle');
   if (showGpsToggle) showGpsToggle.checked = getShowGpsOnCards();
   setTimeout(() => { if (!_gpsActive && getGpsDefault()) toggleGpsSort(); }, 400);
@@ -2296,6 +2298,7 @@ function setShowGpsOnCards(val) {
 }
 
 function captureGpsForSite(id) {
+  if (!requireAdmin()) { toast('Admin access required.', 'error'); return; }
   if (!navigator.geolocation) { toast('GPS not available on this device.', 'error'); return; }
   toast('Getting location…');
   navigator.geolocation.getCurrentPosition(pos => {
@@ -2452,10 +2455,10 @@ function renderSites() {
       </div>
       <div class="site-detail">
         ${s.address ? `<div style="margin-bottom:12px"><div class="detail-label">Address</div><div class="detail-value" style="margin-top:4px;font-size:13px">${esc(s.address)}</div></div>` : ''}
-        ${getShowGpsOnCards() ? `<div style="margin-bottom:12px">
+        ${(requireAdmin() && getShowGpsOnCards()) ? `<div style="margin-bottom:12px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
             <div class="detail-label">GPS</div>
-            ${hasPermission('editSites') ? `<button class="btn-inline-add-code" onclick="event.stopPropagation(); captureGpsForSite(${s.id})">${s._lat ? '📍 Update GPS' : '📍 Add GPS'}</button>` : ''}
+            <button class="btn-inline-add-code" onclick="event.stopPropagation(); captureGpsForSite(${s.id})">${s._lat ? '📍 Update GPS' : '📍 Add GPS'}</button>
           </div>
           <div style="font-size:12px;color:var(--text3);font-family:var(--mono)">
             ${s._lat != null ? `${s._lat.toFixed(5)}, ${s._lng.toFixed(5)}` : '<span style="font-style:italic">No GPS saved</span>'}
