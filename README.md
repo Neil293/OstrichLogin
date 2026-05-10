@@ -11,8 +11,8 @@ A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT f
 - **Secure login** — SHA-256 hashed passwords, session persistence across localStorage, sessionStorage, and IndexedDB
 - **50 IRT sites** pre-loaded — aged care, retirement villages, community facilities
 - **Door & access codes** — one-tap copy to clipboard, structured by location
-- **Sign In / Out** — direct link to ComplyMe sign-in for each site
-- **QR code scanner** — scan ComplyMe QR codes directly into the sign-in URL field
+- **Sign In / Out** — direct link to Linksafe sign-in for each site
+- **QR code scanner** — scan Linksafe QR codes directly into the sign-in URL field
 - **QR code display** — show any site's sign-in URL as a scannable QR code
 - **GPS navigation** — sorts list by distance from your current location, launches Google Maps
 - **Firebase sync** — syncs across all devices, optimised for free tier (minimal reads/writes)
