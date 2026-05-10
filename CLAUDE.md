@@ -100,9 +100,18 @@ Uses `BarcodeDetector` API (Android Chrome) with jsQR as a fallback (loaded from
 
 QR display (showing a site's sign-in URL as a scannable QR) uses the `api.qrserver.com` external service.
 
+## Git workflow
+
+Always develop on a feature branch, never commit directly to `main`. When done:
+1. Push the feature branch
+2. Create a pull request (`"create a pull request"` is enough to trigger this)
+3. The user merges on GitHub
+
+The sandbox cannot push directly to `main` — only to feature branches.
+
 ## Deployment
 
-Push changes to the `main` branch. GitHub Pages serves the repo root automatically. No CI, no build.
+Merge to `main`. GitHub Pages serves the repo root automatically. No CI, no build.
 
 ## Default credentials
 
