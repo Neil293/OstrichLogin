@@ -8,16 +8,17 @@ A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT f
 
 ## Features
 
-- 🔐 **Secure login** — SHA-256 hashed passwords, session persistence
-- 🏢 **35 IRT sites** pre-loaded — aged care, retirement villages, community facilities
-- 🔑 **Door & access codes** — one-tap copy to clipboard, structured by location
-- 🔗 **Sign In / Out** — direct link to ComplyMe sign-in for each site
-- 📷 **QR code scanner** — scan ComplyMe QR codes directly into the sign-in URL field
-- 🧭 **GPS navigation** — sorts list by distance from your current location, launches Google Maps
-- ☁️ **Firebase sync** — syncs across all devices, optimised for free tier (minimal reads/writes)
-- 💾 **Backup & restore** — export/import JSON backup (admin only)
-- 👥 **Multi-user** — admin and user roles with granular per-user permissions
-- 📱 **PWA** — installable on Android and iOS, works offline after first load
+- **Secure login** — SHA-256 hashed passwords, session persistence across localStorage, sessionStorage, and IndexedDB
+- **50 IRT sites** pre-loaded — aged care, retirement villages, community facilities
+- **Door & access codes** — one-tap copy to clipboard, structured by location
+- **Sign In / Out** — direct link to ComplyMe sign-in for each site
+- **QR code scanner** — scan ComplyMe QR codes directly into the sign-in URL field
+- **QR code display** — show any site's sign-in URL as a scannable QR code
+- **GPS navigation** — sorts list by distance from your current location, launches Google Maps
+- **Firebase sync** — syncs across all devices, optimised for free tier (minimal reads/writes)
+- **Backup & restore** — export/import JSON backup (admin only)
+- **Multi-user** — admin and user roles with granular per-user permissions
+- **PWA** — installable on Android and iOS, works offline after first load
 
 ---
 
@@ -44,7 +45,7 @@ Admins can control what each user can do:
 
 ### Steps
 
-1. Upload `index.html` to the repo root
+1. Upload `index.html` (and `sw.js`, `manifest.json`, icons) to the repo root
 2. Enable GitHub Pages: **Settings → Pages → Deploy from branch → main / root**
 3. App will be live at [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
 
@@ -93,7 +94,8 @@ service cloud.firestore {
 |---|---|
 | **Read** | Once on login (`getDoc`) — no persistent listener |
 | **Write** | 30-second debounce, skipped if data unchanged |
-| **Manual sync** | Settings → Sync now |
+| **Conflict** | Timestamp comparison — newest copy always wins |
+| **Manual sync** | Settings → Data → Sync now |
 
 ---
 
@@ -104,8 +106,10 @@ service cloud.firestore {
 | Frontend | Vanilla JS, HTML, CSS — no frameworks, no build tools |
 | Database | Firebase Firestore (`ostrichlogin`) |
 | Auth | Custom SHA-256 via `crypto.subtle` |
+| Session storage | localStorage + sessionStorage + IndexedDB (PWA resilience) |
 | Maps | Google Maps via universal URL |
 | QR scan | BarcodeDetector API (Android), jsQR fallback |
+| QR display | api.qrserver.com |
 | Hosting | GitHub Pages (static) |
 
 ---
