@@ -2,7 +2,7 @@
 
 A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT facility information — sign-in URLs, door/access codes, addresses, and navigation — from any phone or tablet.
 
-**Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
+**Version:** v2.7.0 | **Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
 
 ---
 
