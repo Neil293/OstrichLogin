@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`.
+OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`. Current version: **v2.10.0**.
 
 ## No build step
 
-There are no build tools, no package manager, no transpilation. The entire application is `index.html` (HTML + CSS + JavaScript, ~3200 lines). To make a change, edit `index.html` and push. Deployment happens automatically via GitHub Pages.
+There are no build tools, no package manager, no transpilation. The entire application is `index.html` (HTML + CSS + JavaScript, ~3300 lines). To make a change, edit `index.html` and push. Deployment happens automatically via GitHub Pages.
 
 ## Local development
 
@@ -88,6 +88,14 @@ init() → loadLocal() → recoverSession() →
 
 `hasPermission(perm)` — returns `true` for admins unconditionally, otherwise looks up the current user's `permissions` object. UI elements (buttons, sections) are shown/hidden based on this in both `bootApp()` and inside `renderSites()`.
 
+`requireAdmin()` — throws/alerts and aborts if the current user is not an admin. Used to gate GPS coordinate capture and other sensitive write operations.
+
+### GPS coordinates
+
+Sites have `_lat` / `_lng` fields for accurate distance sorting. Admins can capture or update these directly from the expanded site card using the "Add GPS" / "Update GPS" button, which calls `captureGpsForSite(id)`. This uses the browser Geolocation API and saves directly to the site object (no edit page needed). GPS sections on site cards are only rendered for admin users.
+
+Users can toggle "Default to GPS sort" and "Show GPS on cards" in Settings → Account. These preferences are stored in `localStorage` as `ostrich_gps_default` and `ostrich_show_gps`. The GPS sort toggle in Settings is hidden from non-admins (`showGpsRow` element).
+
 ### Service Worker (`sw.js`)
 
 Cache strategy: network-first for HTML (always get latest), cache-first for icons and manifest.
@@ -101,6 +109,12 @@ Uses `BarcodeDetector` API (Android Chrome) with jsQR as a fallback (loaded from
 QR display (showing a site's sign-in URL as a scannable QR) uses the `api.qrserver.com` external service.
 
 The sign-in service is **Linksafe**, hosted at `app.complyme.com.au` — the URLs are correct even though the domain name differs from the brand name.
+
+## Data export files
+
+`irt-locations.json` — 38 IRT sites exported from the live Firebase backup, with fields `name`, `address`, `lat`, `lng`, `signInUrl`. Used to seed coordinates in other apps. Regenerate by extracting from a fresh backup JSON exported via Settings → Data → Backup.
+
+`irt-sites.csv` — same 38 sites in CSV format (Name, Address, Latitude, Longitude, Sign-In URL).
 
 ## Git workflow
 
