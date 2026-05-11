@@ -2,19 +2,19 @@
 
 A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT facility information — sign-in URLs, door/access codes, addresses, and navigation — from any phone or tablet.
 
-**Version:** v2.7.0 | **Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
+**Version:** v2.10.0 | **Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
 
 ---
 
 ## Features
 
 - **Secure login** — SHA-256 hashed passwords, session persistence across localStorage, sessionStorage, and IndexedDB
-- **50 IRT sites** pre-loaded — aged care, retirement villages, community facilities
+- **38 IRT sites** pre-loaded — aged care, retirement villages, community facilities
 - **Door & access codes** — one-tap copy to clipboard, structured by location
 - **Sign In / Out** — direct link to Linksafe sign-in for each site
 - **QR code scanner** — scan Linksafe QR codes directly into the sign-in URL field
 - **QR code display** — show any site's sign-in URL as a scannable QR code
-- **GPS navigation** — sorts list by distance from your current location, launches Google Maps
+- **GPS navigation** — sorts list by distance from your current location, launches Google Maps; admin can capture/update GPS coordinates per site directly from the site card
 - **Firebase sync** — syncs across all devices, optimised for free tier (minimal reads/writes)
 - **Backup & restore** — export/import JSON backup (admin only)
 - **Multi-user** — admin and user roles with granular per-user permissions
@@ -106,6 +106,17 @@ service cloud.firestore {
 ## Camera & GPS requirements
 
 Camera (QR scanning) and GPS (distance sort / navigation) require HTTPS. GitHub Pages provides this automatically — these features will not work when running the file locally (`file://`).
+
+---
+
+## Data exports
+
+| File | Description |
+|---|---|
+| `irt-locations.json` | 38 IRT sites with name, address, lat/lng, and Linksafe sign-in URL |
+| `irt-sites.csv` | Same data in CSV format |
+
+These files are generated from the live Firebase backup and can be used to seed or update other apps.
 
 ---
 
