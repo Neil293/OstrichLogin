@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`. Current version: **v2.10.0**.
+OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`. Current version: **v2.12.0**.
 
 ## No build step
 
@@ -30,10 +30,12 @@ The app is structured in a single HTML file with three sections:
 ### Global state
 
 ```js
-let _sites   = [];   // array of site objects
-let _users   = [];   // array of user objects
-let _session = null; // { username, name, role, ts }
-let _expandedId = null; // which site card is open
+let _sites       = [];   // array of site objects
+let _users       = [];   // array of user objects
+let _owners      = [];   // array of owner objects
+let _session     = null; // { username, name, role, ts }
+let _expandedId  = null; // which site card is open
+let _ownerFilter = null; // active owner chip filter (null = All)
 let _gpsActive, _userLat, _userLng; // GPS sort state
 ```
 
@@ -41,8 +43,15 @@ let _gpsActive, _userLat, _userLng; // GPS sort state
 
 **Site object:**
 ```js
-{ id, name, address, _lat, _lng, signInUrl, accessCodes: [{location, code}], notes, updatedAt }
+{ id, name, address, _lat, _lng, owner, signInUrl, accessCodes: [{location, code}], notes, updatedAt }
 ```
+`owner` is an owner `id` string (e.g. `'irt'`, `'bfs'`). Defaults to `'irt'` for existing records via migration in `loadLocal()`.
+
+**Owner object:**
+```js
+{ id, name }  // e.g. { id: 'irt', name: 'IRT' }
+```
+Default owners: `IRT` and `BFS`. Stored in `ostrich_owners_v1`. Owner visibility (show/hide) stored separately in `ostrich_owner_vis` as `{ irt: true, bfs: false, … }`.
 
 **User object:**
 ```js
@@ -54,11 +63,11 @@ Passwords are SHA-256 hashed via `crypto.subtle` (`sha256()` function). Admins h
 
 ### Storage layers (three tiers for PWA resilience)
 
-1. **`localStorage`** — primary store; keys `ostrich_sites_v1`, `ostrich_users_v1`, `ostrich_session_v1`
+1. **`localStorage`** — primary store; keys `ostrich_sites_v1`, `ostrich_users_v1`, `ostrich_session_v1`, `ostrich_owners_v1`, `ostrich_owner_vis`
 2. **`sessionStorage`** — session backup for tab reloads
 3. **`IndexedDB`** (`ostrichlogin_db`) — session backup that survives PWA storage pressure; written via `idbSet()`/`idbGet()`/`idbDelete()`
 
-`loadLocal()` reads from localStorage. `saveLocal()` writes sites + users. Session is written to all three layers on login.
+`loadLocal()` reads from localStorage (including owners) and migrates any site without an `owner` field to `'irt'`. `saveLocal()` writes sites, users, and owners. Session is written to all three layers on login.
 
 ### Firebase sync strategy
 
@@ -80,15 +89,28 @@ init() → loadLocal() → recoverSession() →
 
 ### Rendering
 
-`renderSites()` filters `_sites` by search query, sorts by GPS distance (if active) or alphabetically, then builds the site card HTML via template literals and sets `siteGrid.innerHTML`. All user-controlled strings pass through `esc()` for XSS protection before insertion.
+`renderSites()` filters `_sites` by owner visibility, active owner chip filter (`_ownerFilter`), and search query; sorts by GPS distance (if active) or alphabetically; then builds site card HTML via template literals and sets `siteGrid.innerHTML`. The collapsed card header shows only the site name (address is shown in the expanded detail only). All user-controlled strings pass through `esc()` for XSS protection before insertion.
 
 `renderUsers()` similarly builds the users table HTML.
+
+`renderOwnerFilter()` builds the owner chip row (`All | IRT | BFS | …`) above the site list; hidden when only one owner exists.
+
+`renderOwners()` builds the owners list in Settings → Owners (admin only).
 
 ### Permission system
 
 `hasPermission(perm)` — returns `true` for admins unconditionally, otherwise looks up the current user's `permissions` object. UI elements (buttons, sections) are shown/hidden based on this in both `bootApp()` and inside `renderSites()`.
 
-`requireAdmin()` — throws/alerts and aborts if the current user is not an admin. Used to gate GPS coordinate capture and other sensitive write operations.
+`requireAdmin()` — throws/alerts and aborts if the current user is not an admin. Used to gate GPS coordinate capture, owner management, and other sensitive write operations.
+
+### Owner system
+
+Each site has an `owner` field (id string). The `_owners` array defines available owners; defaults are `IRT` and `BFS`. Owner management is admin-only (Settings → Owners tab):
+- Toggle visibility per owner — hidden owners' sites are excluded from `renderSites()` and their chip removed from the filter row
+- Add new owner — id is auto-generated from the name
+- Remove owner — sites are reassigned to the next remaining owner before deletion
+- Owner visibility persisted in `localStorage` as `ostrich_owner_vis: { irt: true, bfs: true, … }`
+- `_ownerFilter` (null = All) controls the active filter chip; `setOwnerFilter(id)` updates it and re-renders
 
 ### GPS coordinates
 
@@ -112,7 +134,7 @@ The sign-in service is **Linksafe**, hosted at `app.complyme.com.au` — the URL
 
 ## Data export files
 
-`irt-locations.json` — 38 IRT sites exported from the live Firebase backup, with fields `name`, `address`, `lat`, `lng`, `signInUrl`. Used to seed coordinates in other apps. Regenerate by extracting from a fresh backup JSON exported via Settings → Data → Backup.
+`irt-locations.json` — 38 IRT sites exported from the live Firebase backup, with fields `name`, `address`, `lat`, `lng`, `signInUrl`, `owner`. Used to seed coordinates in other apps. Regenerate by extracting from a fresh backup JSON exported via Settings → Data → Backup.
 
 `irt-sites.csv` — same 38 sites in CSV format (Name, Address, Latitude, Longitude, Sign-In URL).
 

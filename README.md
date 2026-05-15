@@ -2,7 +2,7 @@
 
 A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT facility information — sign-in URLs, door/access codes, addresses, and navigation — from any phone or tablet.
 
-**Version:** v2.10.0 | **Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
+**Version:** v2.12.0 | **Live app:** [neil293.github.io/OstrichLogin/](https://neil293.github.io/OstrichLogin/)
 
 ---
 
@@ -10,6 +10,7 @@ A secure, mobile-first PWA for Fairy Meadow Plumbing field staff to access IRT f
 
 - **Secure login** — SHA-256 hashed passwords, session persistence across localStorage, sessionStorage, and IndexedDB
 - **38 IRT sites** pre-loaded — aged care, retirement villages, community facilities
+- **Owner system** — sites grouped by owner (IRT, BFS, or custom); filter chips on site list; owner badge on cards; admin can add/remove owners and toggle each owner's visibility on/off
 - **Door & access codes** — one-tap copy to clipboard, structured by location
 - **Sign In / Out** — direct link to Linksafe sign-in for each site
 - **QR code scanner** — scan Linksafe QR codes directly into the sign-in URL field
@@ -113,7 +114,7 @@ Camera (QR scanning) and GPS (distance sort / navigation) require HTTPS. GitHub 
 
 | File | Description |
 |---|---|
-| `irt-locations.json` | 38 IRT sites with name, address, lat/lng, and Linksafe sign-in URL |
+| `irt-locations.json` | 38 IRT sites with name, address, lat/lng, sign-in URL, and owner |
 | `irt-sites.csv` | Same data in CSV format |
 
 These files are generated from the live Firebase backup and can be used to seed or update other apps.
