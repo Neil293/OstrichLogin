@@ -877,6 +877,43 @@
 
   input[type="file"] { display: none; }
 
+  /* ── OWNER FILTER ─────────────────────────────── */
+  .owner-filter-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 6px 0 4px;
+  }
+  .owner-chip {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .owner-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .owner-chip.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+  .owner-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
   .btn-gps {
     background: var(--surface);
     color: var(--text2);
@@ -1326,7 +1363,7 @@
   <div class="login-box">
     <div class="login-logo">Fairy Meadow Plumbing</div>
     <div class="login-title">OstrichLogin</div>
-    <div class="login-sub" id="appVersionSub">v2.10.0 — Secure access required</div>
+    <div class="login-sub" id="appVersionSub">v2.11.0 — Secure access required</div>
 
     <div class="form-group">
       <label>Username</label>
@@ -1372,6 +1409,7 @@
         </button>
         <button class="btn btn-primary" onclick="openSiteModal()" id="addSiteBtn" style="white-space:nowrap">+ Add Site</button>
       </div>
+      <div id="ownerFilterRow" class="owner-filter-row"></div>
       <div class="site-count" id="siteCount"></div>
       <div class="site-grid" id="siteGrid"></div>
     </div>
@@ -1391,6 +1429,7 @@
       <!-- Settings sub-nav -->
       <div id="settingsSubNav">
         <button class="settings-sub-tab active" data-stab="stab-users" onclick="switchSettingsTab('stab-users')" id="stabUsersBtn">Users</button>
+        <button class="settings-sub-tab" data-stab="stab-owners" onclick="switchSettingsTab('stab-owners')" id="stabOwnersBtn">Owners</button>
         <button class="settings-sub-tab" data-stab="stab-data" onclick="switchSettingsTab('stab-data')" id="stabDataBtn">Data</button>
         <button class="settings-sub-tab" data-stab="stab-account" onclick="switchSettingsTab('stab-account')">Account</button>
       </div>
@@ -1408,6 +1447,23 @@
             </thead>
             <tbody id="usersBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ── OWNERS SUB-TAB ── -->
+      <div id="stab-owners" style="display:none">
+        <div class="settings-section">
+          <div class="settings-section-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Owners</span>
+          </div>
+          <div id="ownersList"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Add Owner</div>
+          <div class="settings-row">
+            <input type="text" id="newOwnerName" placeholder="Owner name (e.g. ACME)" style="flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:8px 12px;outline:none" onkeydown="if(event.key==='Enter')addOwner()">
+            <button class="btn btn-primary btn-sm" onclick="addOwner()" style="white-space:nowrap">+ Add</button>
+          </div>
         </div>
       </div>
 
@@ -1493,7 +1549,7 @@
           <div class="settings-row">
             <div>
               <div class="settings-label">OstrichLogin</div>
-              <div class="settings-desc"><span class="app-version-label">v2.10.0 — Fairy Meadow Plumbing</span></div>
+              <div class="settings-desc"><span class="app-version-label">v2.11.0 — Fairy Meadow Plumbing</span></div>
             </div>
           </div>
         </div>
@@ -1541,6 +1597,10 @@
         <label>Access Codes</label>
         <div id="modalAccessCodesList"></div>
         <button type="button" class="ac-add-btn" onclick="addModalAccessCodeRow()">+ Add code</button>
+      </div>
+      <div class="form-group" id="siteOwnerGroup">
+        <label>Owner</label>
+        <select id="siteOwner" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:8px 12px;width:100%;outline:none"></select>
       </div>
       <div class="form-group">
         <label>Notes</label>
@@ -1673,6 +1733,10 @@
       <label>Address</label>
       <input type="text" id="editSiteAddress" placeholder="Street, Suburb NSW XXXX">
     </div>
+    <div class="form-group" id="editOwnerGroup">
+      <label>Owner</label>
+      <select id="editSiteOwner" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;padding:8px 12px;width:100%;outline:none"></select>
+    </div>
 
     <div class="edit-section-label">Location</div>
     <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px">
@@ -1757,14 +1821,17 @@ const FIREBASE_CONFIG = {
 };
 
 const FIRESTORE_DOC = 'ostrich_sites/main';
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.11.0';
 
 // ─────────────────────────────────────────────
 //  STORAGE KEYS
 // ─────────────────────────────────────────────
-const K_SITES    = 'ostrich_sites_v1';
-const K_USERS    = 'ostrich_users_v1';
-const K_SESSION  = 'ostrich_session_v1';
+const K_SITES     = 'ostrich_sites_v1';
+const K_USERS     = 'ostrich_users_v1';
+const K_SESSION   = 'ostrich_session_v1';
+const K_OWNERS    = 'ostrich_owners_v1';
+const K_OWNER_VIS = 'ostrich_owner_vis';
+const DEFAULT_OWNERS = [{ id: 'irt', name: 'IRT' }, { id: 'bfs', name: 'BFS' }];
 
 // ── IndexedDB for persistent session (survives PWA storage eviction) ──────────
 const IDB_NAME = 'ostrichlogin_db';
@@ -1819,11 +1886,13 @@ async function idbDelete(key) {
 // ─────────────────────────────────────────────
 let _sites   = [];
 let _users   = [];
+let _owners  = [];
 let _session = null;
 let _db      = null;
 let _syncTs  = 0;
 let _syncTimer = null;
 let _expandedId = null;
+let _ownerFilter = null;
 
 // ─────────────────────────────────────────────
 //  SHA-256 HASH
@@ -1846,11 +1915,15 @@ function loadLocal() {
       localStorage.setItem(K_SESSION, JSON.stringify(_session));
     }
   } catch { _session = null; }
+  try { _owners = JSON.parse(localStorage.getItem(K_OWNERS) || 'null') || DEFAULT_OWNERS.map(o => ({...o})); } catch { _owners = DEFAULT_OWNERS.map(o => ({...o})); }
+  // Migration: assign owner 'irt' to any site that doesn't have one
+  _sites.forEach(s => { if (!s.owner) s.owner = 'irt'; });
 }
 
 function saveLocal() {
   localStorage.setItem(K_SITES, JSON.stringify(_sites));
   localStorage.setItem(K_USERS, JSON.stringify(_users));
+  localStorage.setItem(K_OWNERS, JSON.stringify(_owners));
 }
 
 // ─────────────────────────────────────────────
@@ -2209,6 +2282,8 @@ async function tryLoadFromFirebase() {
       if (remote.sites && remote.sites.length > 0 && remote.users && remote.users.length > 0 && remoteTs >= localTs) {
         _sites = remote.sites;
         _users = remote.users;
+        if (remote.owners && remote.owners.length > 0) _owners = remote.owners;
+        _sites.forEach(s => { if (!s.owner) s.owner = 'irt'; });
         localStorage.setItem('ostrich_last_ts', String(remoteTs));
         saveLocal();
         return true;
@@ -2238,6 +2313,8 @@ function bootApp() {
 
   renderSites();
   renderUsers();
+  renderOwners();
+  renderOwnerFilter();
   initFirebase();
   const gpsToggle = document.getElementById('gpsDefaultToggle');
   if (gpsToggle) gpsToggle.checked = getGpsDefault();
@@ -2245,6 +2322,8 @@ function bootApp() {
   if (showGpsRow) showGpsRow.style.display = isAdmin ? '' : 'none';
   const showGpsToggle = document.getElementById('showGpsToggle');
   if (showGpsToggle) showGpsToggle.checked = getShowGpsOnCards();
+  const stabOwnersBtn = document.getElementById('stabOwnersBtn');
+  if (stabOwnersBtn) stabOwnersBtn.style.display = isAdmin ? '' : 'none';
   setTimeout(() => { if (!_gpsActive && getGpsDefault()) toggleGpsSort(); }, 400);
 }
 
@@ -2264,12 +2343,109 @@ function switchTab(tab) {
 }
 
 function switchSettingsTab(tabId) {
-  ['stab-users','stab-data','stab-account'].forEach(id => {
+  ['stab-users','stab-owners','stab-data','stab-account'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = id === tabId ? '' : 'none';
     const btn = document.querySelector(`[data-stab="${id}"]`);
     if (btn) btn.classList.toggle('active', id === tabId);
   });
+  if (tabId === 'stab-owners') renderOwners();
+}
+
+// ─────────────────────────────────────────────
+//  OWNER MANAGEMENT
+// ─────────────────────────────────────────────
+function getOwnerVis() {
+  try { return JSON.parse(localStorage.getItem(K_OWNER_VIS) || '{}'); } catch { return {}; }
+}
+function isOwnerVisible(ownerId) {
+  const vis = getOwnerVis();
+  return ownerId in vis ? vis[ownerId] : true;
+}
+function toggleOwnerVisible(ownerId, visible) {
+  const vis = getOwnerVis();
+  vis[ownerId] = visible;
+  localStorage.setItem(K_OWNER_VIS, JSON.stringify(vis));
+  if (_ownerFilter === ownerId && !visible) _ownerFilter = null;
+  renderOwnerFilter();
+  renderSites();
+}
+function populateOwnerSelect(selectId, selectedId) {
+  const el = document.getElementById(selectId);
+  if (!el) return;
+  el.innerHTML = _owners.map(o => `<option value="${esc(o.id)}"${o.id === selectedId ? ' selected' : ''}>${esc(o.name)}</option>`).join('');
+}
+function renderOwnerFilter() {
+  const row = document.getElementById('ownerFilterRow');
+  if (!row) return;
+  if (_owners.length <= 1) { row.innerHTML = ''; return; }
+  const visibleOwners = _owners.filter(o => isOwnerVisible(o.id));
+  if (_ownerFilter && !visibleOwners.find(o => o.id === _ownerFilter)) _ownerFilter = null;
+  row.innerHTML = `
+    <button class="owner-chip${!_ownerFilter ? ' active' : ''}" onclick="setOwnerFilter(null)">All</button>
+    ${visibleOwners.map(o => `<button class="owner-chip${_ownerFilter === o.id ? ' active' : ''}" onclick="setOwnerFilter('${esc(o.id)}')">${esc(o.name)}</button>`).join('')}
+  `;
+}
+function setOwnerFilter(ownerId) {
+  _ownerFilter = ownerId || null;
+  renderOwnerFilter();
+  renderSites();
+}
+function renderOwners() {
+  const el = document.getElementById('ownersList');
+  if (!el) return;
+  if (_owners.length === 0) { el.innerHTML = '<div style="padding:16px;color:var(--text3);font-size:13px">No owners yet.</div>'; return; }
+  el.innerHTML = _owners.map(o => {
+    const count = _sites.filter(s => (s.owner || 'irt') === o.id).length;
+    return `
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">${esc(o.name)}</div>
+        <div class="settings-desc">${count} site${count !== 1 ? 's' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <label class="toggle" title="Show/hide sites from this owner">
+          <input type="checkbox" ${isOwnerVisible(o.id) ? 'checked' : ''} onchange="toggleOwnerVisible('${esc(o.id)}', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        ${_owners.length > 1 ? `<button class="btn btn-danger btn-sm" onclick="deleteOwner('${esc(o.id)}')">Remove</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function addOwner() {
+  if (!requireAdmin()) return;
+  const inp = document.getElementById('newOwnerName');
+  const name = (inp.value || '').trim();
+  if (!name) { toast('Owner name is required.', 'error'); return; }
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  if (_owners.find(o => o.id === id || o.name.toLowerCase() === name.toLowerCase())) { toast('That owner already exists.', 'error'); return; }
+  _owners.push({ id, name });
+  saveLocal();
+  inp.value = '';
+  renderOwners();
+  renderOwnerFilter();
+  toast(`Owner "${name}" added.`, 'success');
+}
+function deleteOwner(id) {
+  if (!requireAdmin()) return;
+  if (_owners.length <= 1) { toast('Cannot remove the last owner.', 'error'); return; }
+  const count = _sites.filter(s => (s.owner || 'irt') === id).length;
+  const ownerName = (_owners.find(o => o.id === id) || {}).name || id;
+  const fallback = _owners.find(o => o.id !== id);
+  const msg = count > 0
+    ? `Remove owner "${ownerName}"? ${count} site${count !== 1 ? 's' : ''} will be reassigned to "${fallback.name}".`
+    : `Remove owner "${ownerName}"?`;
+  if (!confirm(msg)) return;
+  if (count > 0) { _sites.forEach(s => { if ((s.owner || 'irt') === id) s.owner = fallback.id; }); scheduleSyncToFirebase(); }
+  _owners = _owners.filter(o => o.id !== id);
+  const vis = getOwnerVis(); delete vis[id]; localStorage.setItem(K_OWNER_VIS, JSON.stringify(vis));
+  if (_ownerFilter === id) _ownerFilter = null;
+  saveLocal();
+  renderOwners();
+  renderOwnerFilter();
+  renderSites();
+  toast(`Owner "${ownerName}" removed.`, 'success');
 }
 
 // ─────────────────────────────────────────────
@@ -2378,6 +2554,9 @@ function formatDist(km) {
 function renderSites() {
   const q   = (document.getElementById('searchInput').value || '').toLowerCase();
   const list = _sites.filter(s => {
+    const owner = s.owner || 'irt';
+    if (!isOwnerVisible(owner)) return false;
+    if (_ownerFilter && owner !== _ownerFilter) return false;
     if (!q) return true;
     return (s.name||'').toLowerCase().includes(q) ||
            (s.address||'').toLowerCase().includes(q) ||
@@ -2404,6 +2583,8 @@ function renderSites() {
   }
 
   grid.innerHTML = list.map((s, i) => {
+    const ownerObj = _owners.find(o => o.id === (s.owner || 'irt'));
+    const ownerBadge = (_owners.length > 1 && ownerObj) ? `<span class="owner-badge">${esc(ownerObj.name)}</span>` : '';
     let signInBtn = '';
     if (s.signInUrl && hasPermission('signIn')) {
       signInBtn = `<a class="btn btn-signin" href="${s.signInUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
@@ -2441,6 +2622,7 @@ function renderSites() {
           ${s.address ? `<div class="site-addr">${esc(s.address)}</div>` : ''}
           ${(s._dist !== undefined && s._dist !== Infinity) ? `<div class="dist-badge">${formatDist(s._dist)}</div>` : ''}
         </div>
+        ${ownerBadge}
         ${!s.signInUrl ? `
           <div class="no-login-badge" onclick="event.stopPropagation()">
             <span class="no-login-tag">No Login</span>
@@ -2535,6 +2717,7 @@ function openEditPage(id) {
   document.getElementById('editSiteSignInUrl').value = s.signInUrl || '';
   renderAccessCodeRows('editAccessCodesList', s.accessCodes || [], 'addAccessCodeRow');
   document.getElementById('editSiteNotes').value     = s.notes || '';
+  populateOwnerSelect('editSiteOwner', s.owner || 'irt');
   // Show/hide access codes editing based on permission
   const acSection = document.getElementById('editAccessCodesSection');
   if (acSection) acSection.style.display = hasPermission('accessCodes') ? '' : 'none';
@@ -2565,6 +2748,7 @@ function saveEditPage() {
       ? readAccessCodeRows('editAccessCodesList')
       : (_sites.find(x => x.id === id) || {}).accessCodes || [],
     notes:     document.getElementById('editSiteNotes').value.trim(),
+    owner:     document.getElementById('editSiteOwner').value || 'irt',
     updatedAt: Date.now()
   };
 
@@ -2602,6 +2786,7 @@ function openSiteModal(id = null) {
   document.getElementById('siteSignInUrl').value = s ? s.signInUrl : '';
   renderAccessCodeRows('modalAccessCodesList', s ? (s.accessCodes || []) : [], 'addModalAccessCodeRow');
   document.getElementById('siteNotes').value    = s ? s.notes    : '';
+  populateOwnerSelect('siteOwner', s ? (s.owner || 'irt') : (_ownerFilter || (_owners[0] || {id:'irt'}).id));
   document.getElementById('siteModal').classList.add('open');
 }
 
@@ -2623,6 +2808,7 @@ function saveSite() {
     signInUrl: document.getElementById('siteSignInUrl').value.trim(),
     accessCodes: readAccessCodeRows('modalAccessCodesList'),
     notes:     document.getElementById('siteNotes').value.trim(),
+    owner:     document.getElementById('siteOwner').value || 'irt',
     updatedAt: Date.now()
   };
 
@@ -2968,10 +3154,15 @@ function initFirebase() {
     }
     _sites = remote.sites;
     _users = remote.users;
+    if (remote.owners && remote.owners.length > 0) _owners = remote.owners;
+    // Migration: assign owner 'irt' to any site that doesn't have one
+    _sites.forEach(s => { if (!s.owner) s.owner = 'irt'; });
     localStorage.setItem('ostrich_last_ts', String(ts));
     saveLocal();
     renderSites();
     renderUsers();
+    renderOwners();
+    renderOwnerFilter();
     setSyncStatus('synced', 'Synced ' + new Date().toLocaleTimeString());
   };
 
@@ -2986,7 +3177,7 @@ function initFirebase() {
     try {
       const { setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
       const ts = Date.now();
-      await setDoc(window._fbDoc, { sites: _sites, users: _users, ts });
+      await setDoc(window._fbDoc, { sites: _sites, users: _users, owners: _owners, ts });
       localStorage.setItem('ostrich_last_ts', String(ts));
       _fbLastWriteTs = ts;
       setSyncStatus('synced', 'Saved ' + new Date().toLocaleTimeString());
