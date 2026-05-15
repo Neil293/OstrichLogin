@@ -2619,7 +2619,6 @@ function renderSites() {
         <div class="site-index">${String(i+1).padStart(2,'0')}</div>
         <div style="flex:1">
           <div class="site-name">${esc(s.name)}</div>
-          ${s.address ? `<div class="site-addr">${esc(s.address)}</div>` : ''}
           ${(s._dist !== undefined && s._dist !== Infinity) ? `<div class="dist-badge">${formatDist(s._dist)}</div>` : ''}
         </div>
         ${ownerBadge}
