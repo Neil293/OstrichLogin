@@ -558,10 +558,12 @@
     border: none;
     cursor: pointer;
     color: var(--text3);
-    padding: 0;
-    font-size: 13px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
     transition: color 0.15s;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   .copy-btn:hover { color: var(--accent); }
@@ -2656,7 +2658,7 @@ function renderSites() {
                 <div class="access-code-row">
                   ${ac.location ? `<span class="access-code-loc">${esc(ac.location)}</span><div class="access-code-divider"></div>` : ''}
                   <span class="access-code-val">${esc(ac.code)}</span>
-                  <button class="copy-btn" title="Copy" onclick="event.stopPropagation(); copyCode(this, ${JSON.stringify(ac.code)})">⎘</button>
+                  <button class="copy-btn" title="Copy" data-code="${esc(ac.code)}" onclick="event.stopPropagation(); copyCode(this, this.dataset.code)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
                 </div>`).join('')}
             </div>` : `<div style="font-size:12px;color:var(--text3);font-style:italic">No codes added yet</div>`}
           <div class="inline-add-code-form" id="inline-add-${s.id}" style="display:none" onclick="event.stopPropagation()">
@@ -2687,11 +2689,13 @@ function esc(str) {
     .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
+const COPY_ICON_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
 function copyCode(btn, code) {
   navigator.clipboard.writeText(code).then(() => {
     btn.classList.add('copied');
-    btn.textContent = '✓';
-    setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘'; }, 2000);
+    btn.innerHTML = '✓';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = COPY_ICON_SVG; }, 2000);
     toast('Code copied!', 'success');
   });
 }
