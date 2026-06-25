@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`. Current version: **v2.12.0**.
+OstrichLogin is a single-file PWA for Fairy Meadow Plumbing field staff to look up IRT aged care / retirement facility information (sign-in URLs, access codes, GPS navigation). The live app is hosted on GitHub Pages at `neil293.github.io/OstrichLogin/`. Current version: **v2.13.0**.
 
 ## No build step
 
